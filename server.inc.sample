@@ -1,0 +1,7 @@
+# DNS forwarders
+forwarder1=8.8.8.8
+forwarder2=8.8.4.4
+# FreeIPA domain name
+bzn=ipa.acme-corp.com
+# Old servers to expunge
+legacyipasvrs="oldipa-1 oldipa-2"
