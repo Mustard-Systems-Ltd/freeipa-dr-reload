@@ -1,6 +1,7 @@
 . server.inc
 nmcli connection modify eth0 ipv4.dns "127.0.0.1,${forwarder1},${forwarder2}"
 nmcli connection modify eth0 ipv4.dns-search "${bzn}"
+hostnamectl set-hostname $(hostname | sed -e 's/^\([^.]*\)\..*$/\1/').${bzn}
 systemctl restart network.service
 sleep 3
 if [[ -z $PW ]] ; then

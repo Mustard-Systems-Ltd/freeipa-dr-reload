@@ -1,6 +1,7 @@
 . server.inc
 nmcli connection modify eth0 ipv4.dns "${forwarder1},${forwarder2}"
 nmcli connection modify eth0 ipv4.dns-search "${bzn}"
+hostnamectl set-hostname $(hostname | sed -e 's/^\([^.]*\)\..*$/\1/').${bzn}
 systemctl restart network.service
 sleep 3
 echo '[vault-base]
