@@ -13,6 +13,7 @@ else
 	ls -lrt ca*
 	echo Sleeping for 130
 	sleep 130
+	systemctl --lines=0 status {dirsrv@${realmm},httpd,ipa-dnskeysyncd,ipa_memcached,kadmin,krb5kdc,named-pkcs11,pki-tomcatd@pki-tomcat}.service
 	sudo -u dirsrv -- db2ldif -Z $realmm -NU -n userRoot
 	sleep 2
 	sudo -u dirsrv -- db2ldif -Z $realmm -NU -n ipaca

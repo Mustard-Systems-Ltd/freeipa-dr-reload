@@ -13,12 +13,20 @@ yum -y --setopt=multilib_policy=best --setopt=obsoletes=0 --exclude='*.i686' --s
 sleep 2
 yum -y --setopt=multilib_policy=best --exclude='*.i686' --skip-broken upgrade
 sleep 2
+yum versionlock list
 yum versionlock delete '*'
+yum versionlock list
 sleep 2
 yum -y --setopt=multilib_policy=best --setopt=obsoletes=0 --exclude='*.i686' --skip-broken update
 sleep 2
 yum -y --setopt=multilib_policy=best --exclude='*.i686' --skip-broken upgrade
 sleep 2
+systemctl --lines=0 status {dirsrv@${realmm},httpd,ipa-dnskeysyncd,ipa_memcached,kadmin,krb5kdc,named-pkcs11,pki-tomcatd@pki-tomcat}.service
+echo Sleeping for 131 then shutting down FreeIPA
+sleep 131
+sync ; ipactl stop ; sync
+sleep 2
+systemctl --lines=0 status {dirsrv@${realmm},httpd,ipa-dnskeysyncd,ipa_memcached,kadmin,krb5kdc,named-pkcs11,pki-tomcatd@pki-tomcat}.service
 yum upgrade
 sleep 2
 sync

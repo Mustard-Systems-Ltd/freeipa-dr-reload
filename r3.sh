@@ -10,6 +10,8 @@ else
 	sed -i -r -e '/^nsUniqueId/d' nonmepimport.ldif
 	sed -i -e '/^dn.*cn=etc,'"${bdcn}"'/,/^$/{/^$/!d}' nonmepimport.ldif
 	sed -i -e '/^memberOf: cn=replication managers,/d' nonmepimport.ldif
+	systemctl --lines=0 status {dirsrv@${realmm},httpd,ipa-dnskeysyncd,ipa_memcached,kadmin,krb5kdc,named-pkcs11,pki-tomcatd@pki-tomcat}.service
+	sleep 10
         ldapadd -H ldap://localhost -D "cn=directory manager" -w $PW -f nonmepimport.ldif -c -S skipped-$(date +%s).ldif
 	echo Sleeping for 130
 	sleep 130
