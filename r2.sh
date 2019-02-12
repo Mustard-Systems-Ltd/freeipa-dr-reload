@@ -7,8 +7,8 @@ sleep 3
 if [[ -z $PW ]] ; then
         echo Set PW you fool. Do not forget the leading space
 else
-        brealm=$($bzn | tr '[a-z]' '[A-Z]')
-	realmm=$($brealm | tr '.' '-')
+        brealm=$(echo $bzn | tr '[a-z]' '[A-Z]')
+	realmm=$(echo $brealm | tr '.' '-')
         ipa-server-install -r ${brealm} -n ${bzn} -p $PW -a $PW --mkhomedir --hostname=$(hostname) --ip-address=$(ip route get 8.8.8.8 | awk '$(NF-1) == "src" { print $NF }') --ssh-trust-dns --setup-dns --no-host-dns --forwarder ${forwarder1} --forwarder ${forwarder2} -U
 	ls -lrt ca*
 	echo Sleeping for 130

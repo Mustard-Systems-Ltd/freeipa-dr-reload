@@ -1,6 +1,6 @@
 . server.inc
 brealm=$(echo $bzn | tr '[a-z]' '[A-Z]')
-realmm=$($brealm | tr '.' '-')
+realmm=$(echo $brealm | tr '.' '-')
 yum makecache fast
 systemctl --lines=0 status {dirsrv@${realmm},httpd,ipa-dnskeysyncd,ipa_memcached,kadmin,krb5kdc,named-pkcs11,pki-tomcatd@pki-tomcat}.service
 echo Sleeping for 131

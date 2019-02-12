@@ -3,7 +3,7 @@ if [[ -z $PW ]] ; then
         echo Set PW you fool. Do not forget the leading space
 else
 	brealm=$(echo $bzn | tr '[a-z]' '[A-Z]')
-	realmm=$($brealm | tr '.' '-')
+	realmm=$(echo $brealm | tr '.' '-')
 	bdcn=$(echo $bzn | sed -e 's/^/dc=/' -e 's/\./,dc=/g')
 	sed -r -e '/^(entry(dn|id|usn)|hasSubordinates|(create|modify)Timestamp|(creators|modifiers)Name|mepManaged(By|Entry)|parentid|passwordGraceUserTime|subschemaSubentry)/d' userRoot-recovery.ldif > nonmepimport.ldif
 	sed -i -r -e '/^nsaccountLock/d' nonmepimport.ldif
