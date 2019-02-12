@@ -78,6 +78,8 @@ sleep 2
 systemctl enable haveged.service
 systemctl start haveged.service
 sleep 11
+yum -y --setopt=obsoletes=0 install git
+sleep 2
 sync
 echo Rebooting
 exec shutdown -r now
