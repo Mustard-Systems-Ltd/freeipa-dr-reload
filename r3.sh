@@ -1,25 +1,26 @@
 . server.inc
+brealm=$(echo $bzn | tr '[a-z]' '[A-Z]')
+realmm=$(echo $brealm | tr '.' '-')
+bdcn=$(echo $bzn | sed -e 's/^/dc=/' -e 's/\./,dc=/g')
+sed -r -e '/^(entry(dn|id|usn)|hasSubordinates|(create|modify)Timestamp|(creators|modifiers)Name|mepManaged(By|Entry)|parentid|passwordGraceUserTime|subschemaSubentry)/d' userRoot-recovery.ldif > nonmep-userRoot.ldif
+sed -i -r -e '/^nsaccountLock/d' nonmep-userRoot.ldif
+sed -i -r -e '/^nsUniqueId/d' nonmep-userRoot.ldif
+sed -i -e '/^dn.*cn=etc,'"${bdcn}"'/,/^$/{/^$/!d}' nonmep-userRoot.ldif
+sed -i -e '/^dn.*cn=kerberos,'"${bdcn}"'/,/^$/{/^$/!d}' nonmep-userRoot.ldif
+sed -i -e '/^memberOf: cn=replication managers,/d' nonmep-userRoot.ldif
+systemctl --lines=0 status {dirsrv@${realmm},httpd,ipa-dnskeysyncd,ipa_memcached,kadmin,krb5kdc,named-pkcs11,pki-tomcatd@pki-tomcat}.service
 if [[ -z $PW ]] ; then
         echo Set PW you fool. Do not forget the leading space
 else
-	brealm=$(echo $bzn | tr '[a-z]' '[A-Z]')
-	realmm=$(echo $brealm | tr '.' '-')
-	bdcn=$(echo $bzn | sed -e 's/^/dc=/' -e 's/\./,dc=/g')
-	sed -r -e '/^(entry(dn|id|usn)|hasSubordinates|(create|modify)Timestamp|(creators|modifiers)Name|mepManaged(By|Entry)|parentid|passwordGraceUserTime|subschemaSubentry)/d' userRoot-recovery.ldif > nonmepimport.ldif
-	sed -i -r -e '/^nsaccountLock/d' nonmepimport.ldif
-	sed -i -r -e '/^nsUniqueId/d' nonmepimport.ldif
-	sed -i -e '/^dn.*cn=etc,'"${bdcn}"'/,/^$/{/^$/!d}' nonmepimport.ldif
-	sed -i -e '/^memberOf: cn=replication managers,/d' nonmepimport.ldif
-	systemctl --lines=0 status {dirsrv@${realmm},httpd,ipa-dnskeysyncd,ipa_memcached,kadmin,krb5kdc,named-pkcs11,pki-tomcatd@pki-tomcat}.service
 	sleep 10
-        ldapadd -H ldap://localhost -D "cn=directory manager" -w $PW -f nonmepimport.ldif -c -S skipped-$(date +%s).ldif
+        ldapadd -H ldap://localhost -D "cn=directory manager" -w $PW -f nonmep-userRoot.ldif -c -S skipped-$(date +%s).ldif
 	echo Sleeping for 130
 	sleep 130
 	kdestroy
 	echo $PW | kinit admin@${brealm}
 	for z in $(ipa dnszone-find --pkey-only --sizelimit=2000 | awk '/^  Zone name:/ { print $3 } { next }') ; do
 		sleep 1
-		if $(echo $z | grep -q 'in-addr\.arpa\.$) ; then 
+		if $(echo $z | grep -q 'in-addr\.arpa\.$') ; then 
 			echo reverse
 		else
 			echo normal
