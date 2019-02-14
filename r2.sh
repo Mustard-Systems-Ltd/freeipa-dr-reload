@@ -14,6 +14,13 @@ if [[ -s userRoot-recovery.ldif ]] ; then
 	for lis in ${legacyipasvrs} ; do
 		sed -i -r -e 's/'"${lis}"'/'"$(hostname | sed -e 's/^\([^.]*\)\..*$/\1/')"'/g' nonmep-kerberos.ldif
 	done
+	[[ -f /usr/lib/python2.7/site-packages/ipaserver/install/krbinstance.py-real ]] && ( rm -f /usr/lib/python2.7/site-packages/ipaserver/install/krbinstance.py ; mv /usr/lib/python2.7/site-packages/ipaserver/install/krbinstance.py-real /usr/lib/python2.7/site-packages/ipaserver/install/krbinstance.py )
+	[[ -f /usr/lib/python2.7/site-packages/ipaserver/install/krbinstance.py-real ]] || ( mv /usr/lib/python2.7/site-packages/ipaserver/install/krbinstance.py /usr/lib/python2.7/site-packages/ipaserver/install/krbinstance.py-real ; cp -p /usr/lib/python2.7/site-packages/ipaserver/install/krbinstance.py-real /usr/lib/python2.7/site-packages/ipaserver/install/krbinstance.py )
+	echo '#!/usr/bin/bash' > /tmp/hack-krb-mk.sh
+	chmod u+x,go-rwx /tmp/hack-krb-mk.sh
+	echo \# other stuff >> /tmp/hack-krb-mk.sh
+	echo ldapadd -H ldap://localhost -D \"cn=directory manager\" -w \"${PW}\" -f nonmep-kerberos.ldif -c -S skipped-kerberos-$(date +%s).ldif >> /tmp/hack-krb-mk.sh
+	echo \# other stuff >> /tmp/hack-krb-mk.sh
 fi
 if [[ -z $PW ]] ; then
         echo Set PW you fool. Do not forget the leading space
@@ -30,5 +37,11 @@ else
 	sudo -u dirsrv -- db2ldif -Z $realmm -NU -n changelog
 	sleep 2
 	sudo -u dirsrv -- db2bak -Z $realmm
+fi
+sync
+if [[ -s userRoot-recovery.ldif ]] ; then
+	true
+	#rm -f /usr/lib/python2.7/site-packages/ipaserver/install/krbinstance.py ; mv /usr/lib/python2.7/site-packages/ipaserver/install/krbinstance.py-real /usr/lib/python2.7/site-packages/ipaserver/install/krbinstance.py
+	#rm -f /tmp/hack-krb-mk.sh
 fi
 sync

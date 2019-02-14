@@ -13,7 +13,7 @@ if [[ -z $PW ]] ; then
         echo Set PW you fool. Do not forget the leading space
 else
 	sleep 10
-        ldapadd -H ldap://localhost -D "cn=directory manager" -w $PW -f nonmep-userRoot.ldif -c -S skipped-$(date +%s).ldif
+        ldapadd -H ldap://localhost -D "cn=directory manager" -w $PW -f nonmep-userRoot.ldif -c -S skipped-userRoot-$(date +%s).ldif
 	echo Sleeping for 130
 	sleep 130
 	kdestroy
