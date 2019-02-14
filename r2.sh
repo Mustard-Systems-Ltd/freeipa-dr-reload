@@ -8,9 +8,7 @@ brealm=$(echo $bzn | tr '[a-z]' '[A-Z]')
 realmm=$(echo $brealm | tr '.' '-')
 bdcn=$(echo $bzn | sed -e 's/^/dc=/' -e 's/\./,dc=/g')
 if [[ -s userRoot-recovery.ldif ]] ; then
-	sed -n -e '/^dn: cn='"${brealm}"',cn=kerberos,'"${bdcn}"'/,/^$/p' userRoot-recovery.ldif > nonmep-kerberos.ldif
-	echo '' >> nonmep-kerberos.ldif
-	sed -n -e '/^dn: krbPrincipalName=.*,cn=kerberos,'"${bdcn}"'/,/^$/p' userRoot-recovery.ldif >> nonmep-kerberos.ldif
+	sed -n -e '/^dn: .*cn='"${brealm}"',cn=kerberos,'"${bdcn}"'/,/^$/p' userRoot-recovery.ldif > nonmep-kerberos.ldif
 	sed -i -r -e '/^(entry(dn|id|usn)|hasSubordinates|(create|modify)Timestamp|(creators|modifiers)Name|mepManaged(By|Entry)|parentid|passwordGraceUserTime|subschemaSubentry)/d' nonmep-kerberos.ldif
 	sed -i -r -e '/^nsUniqueId/d' nonmep-kerberos.ldif
 	for lis in ${legacyipasvrs} ; do
@@ -23,8 +21,7 @@ if [[ -s userRoot-recovery.ldif ]] ; then
 }' /usr/lib/python2.7/site-packages/ipaserver/install/krbinstance.py
 	echo '#!/usr/bin/bash' > /tmp/hack-krb-mk.sh
 	chmod u+x,go-rwx /tmp/hack-krb-mk.sh
-	echo ldapsearch -LLL -o ldif-wrap=no -H ldap://localhost -D \"cn=directory manager\" -w \"${PW}\" -b cn=kerberos,${bdcn} "'(krbMKey=*)'" dn \| sed -e "'"'/^$/d ; s/^dn: //'"'" \| while read b \; do ldapdelete -H ldap://localhost -D \"cn=directory manager\" -w \"${PW}\" \${b} \; done >> /tmp/hack-krb-mk.sh
-	echo ldapsearch -LLL -o ldif-wrap=no -H ldap://localhost -D \"cn=directory manager\" -w \"${PW}\" -b cn=kerberos,${bdcn} "'(krbPrincipalName=*)'" dn \| sed -e "'"'/^$/d ; s/^dn: //'"'" \| while read b \; do ldapdelete -H ldap://localhost -D \"cn=directory manager\" -w \"${PW}\" \${b} \; done >> /tmp/hack-krb-mk.sh
+	echo ldapsearch -LLL -o ldif-wrap=no -H ldap://localhost -D \"cn=directory manager\" -w \"${PW}\" -b cn=${brealm},cn=kerberos,${bdcn} dn \| sed -e "'"'/^$/d ; s/^dn: //'"'" \| while read b \; do ldapdelete -r -H ldap://localhost -D \"cn=directory manager\" -w \"${PW}\" \${b} \; done >> /tmp/hack-krb-mk.sh
 	echo ldapadd -H ldap://localhost -D \"cn=directory manager\" -w \"${PW}\" -f nonmep-kerberos.ldif -c -S skipped-kerberos-$(date +%s).ldif >> /tmp/hack-krb-mk.sh
 fi
 if [[ -z $PW ]] ; then
