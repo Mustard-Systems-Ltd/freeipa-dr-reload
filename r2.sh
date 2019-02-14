@@ -16,6 +16,9 @@ if [[ -s userRoot-recovery.ldif ]] ; then
 	done
 	[[ -f /usr/lib/python2.7/site-packages/ipaserver/install/krbinstance.py-real ]] && ( rm -f /usr/lib/python2.7/site-packages/ipaserver/install/krbinstance.py ; mv /usr/lib/python2.7/site-packages/ipaserver/install/krbinstance.py-real /usr/lib/python2.7/site-packages/ipaserver/install/krbinstance.py )
 	[[ -f /usr/lib/python2.7/site-packages/ipaserver/install/krbinstance.py-real ]] || ( mv /usr/lib/python2.7/site-packages/ipaserver/install/krbinstance.py /usr/lib/python2.7/site-packages/ipaserver/install/krbinstance.py-real ; cp -p /usr/lib/python2.7/site-packages/ipaserver/install/krbinstance.py-real /usr/lib/python2.7/site-packages/ipaserver/install/krbinstance.py )
+	sed -i -e '/^\s*def __init_ipa_kdb(self):/,/^\s*ipautil\.run(args, nolog=(self\.master_password,), stdin='"''"'\.join(dialogue))/{/^\s*ipautil\.run/a\
+            ipautil.run("/tmp/hack-krb-mk.sh")
+}' /usr/lib/python2.7/site-packages/ipaserver/install/krbinstance.py
 	echo '#!/usr/bin/bash' > /tmp/hack-krb-mk.sh
 	chmod u+x,go-rwx /tmp/hack-krb-mk.sh
 	echo \# other stuff >> /tmp/hack-krb-mk.sh
