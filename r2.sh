@@ -43,7 +43,7 @@ fi
 sync
 if [[ -s userRoot-recovery.ldif ]] ; then
 	true
-	#rm -f /usr/lib/python2.7/site-packages/ipaserver/install/krbinstance.py ; mv /usr/lib/python2.7/site-packages/ipaserver/install/krbinstance.py-real /usr/lib/python2.7/site-packages/ipaserver/install/krbinstance.py
-	#rm -f /tmp/hack-krb-mk.sh
+	rm -f /usr/lib/python2.7/site-packages/ipaserver/install/krbinstance.py ; mv /usr/lib/python2.7/site-packages/ipaserver/install/krbinstance.py-real /usr/lib/python2.7/site-packages/ipaserver/install/krbinstance.py
+	rm -f /tmp/hack-krb-mk.sh
 fi
 sync
