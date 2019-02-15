@@ -52,9 +52,9 @@ yum -y --setopt=obsoletes=0 install bind-libs-9.9.4-29.el7_2.4 bind-utils-9.9.4-
 sleep 2
 yum versionlock add bind-libs
 sleep 2
-yum -y --setopt=obsoletes=0 install sssd-1.13.0-40.el7_2.12 samba-client-libs-4.2.10-7.el7_2 libsmbclient-4.2.10-7.el7_2 libsss_idmap-1.13.0-40.el7_2.12 libsss_nss_idmap-1.13.0-40.el7_2.12
+yum -y --setopt=obsoletes=0 install libldb-1.1.25-1.el7_2 sssd-1.13.0-40.el7_2.12 samba-client-libs-4.2.10-7.el7_2 libsmbclient-4.2.10-7.el7_2 libsss_idmap-1.13.0-40.el7_2.12 libsss_nss_idmap-1.13.0-40.el7_2.12
 sleep 2
-yum versionlock add sssd samba-client-libs libsmbclient libsss_idmap libsss_nss_idmap
+yum versionlock add libldb sssd samba-client-libs libsmbclient libsss_idmap libsss_nss_idmap
 sleep 2
 yum -y --setopt=obsoletes=0 install krb5-workstation-1.13.2-12.el7_2 krb5-pkinit-1.13.2-12.el7_2 ipa-client-4.2.0-15.0.1.el7.centos.19 sssd-ipa-1.13.0-40.el7_2.12 sssd-ldap-1.13.0-40.el7_2.12 python-libipa_hbac-1.13.0-40.el7_2.12 ipa-server-4.2.0-15.0.1.el7.centos.19 slapi-nis-0.54-11.el7_2
 sleep 2
