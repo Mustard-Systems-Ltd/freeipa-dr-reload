@@ -8,7 +8,8 @@ sed -i -r -e '/^nsUniqueId/d' nonmep-userRoot.ldif
 sed -i -e '/^dn.*cn=etc,'"${bdcn}"'/,/^$/{/^$/!d}' nonmep-userRoot.ldif
 sed -i -e '/^dn.*cn=kerberos,'"${bdcn}"'/,/^$/{/^$/!d}' nonmep-userRoot.ldif
 sed -i -e '/^memberOf: cn=replication managers,/d' nonmep-userRoot.ldif
-sed -i -e '/^'"$(grep -Ei '^(dn: ipaUniqueID=.*cn=hbac,'"${bdcn}"'|cn: allow_all)' userRoot-recovery.ldif | grep -B 1 allow_all | head -n 1)"'/,/^$/{/^$/!d}' nonmep-userRoot.ldif
+sed -i -e '/^'"$(grep -Ei '^(dn: ipaUniqueID=.*,cn=hbac,'"${bdcn}"'|cn: allow_all)' userRoot-recovery.ldif | grep -B 1 allow_all | head -n 1)"'/,/^$/{/^$/!d}' nonmep-userRoot.ldif
+sed -i -e '/^'"$(grep -Ei '^(dn: ipaUniqueID=.*,cn=caacls,cn=ca,'"${bdcn}"'|cn: hosts_services_caIPAserviceCert)' userRoot-recovery.ldif | grep -B 1 hosts_services_caIPAserviceCert | head -n 1)"'/,/^$/{/^$/!d}' nonmep-userRoot.ldif
 systemctl --lines=0 status {dirsrv@${realmm},httpd,ipa-dnskeysyncd,ipa_memcached,kadmin,krb5kdc,named-pkcs11,pki-tomcatd@pki-tomcat}.service
 if [[ -z $PW ]] ; then
         echo Set PW you fool. Do not forget the leading space
