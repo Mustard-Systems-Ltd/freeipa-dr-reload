@@ -27,13 +27,21 @@ else
 	echo $PW | kinit admin@${brealm}
 	for z in $(ipa dnszone-find --pkey-only --sizelimit=2000 | awk '/^  Zone name:/ { print $3 } { next }') ; do
 		sleep 1
+		echo Results of ipa dnszone-show $z --all -raw
+		ipa dnszone-show $z --all -raw
 		if $(echo $z | grep -q 'in-addr\.arpa\.$') ; then 
+			echo About to try ipa dnszone-mod $z --dynamic-update=TRUE
 			ipa dnszone-mod $z --dynamic-update=TRUE
 		else
+			echo About to try ipa dnszone-mod $z --update-policy='grant '"${brealm}"' krb5-self * A; grant '"${brealm}"' krb5-self * AAAA; grant '"${brealm}"' krb5-self * SSHFP;'
 			ipa dnszone-mod $z --update-policy='grant '"${brealm}"' krb5-self * A; grant '"${brealm}"' krb5-self * AAAA; grant '"${brealm}"' krb5-self * SSHFP;'
 		fi
-		echo About to try ipa dnsrecord-mod $z @ --ns-rec=$(hostname).
-		ipa dnsrecord-mod $z @ --ns-rec=$(hostname).
+		echo Results of ipa dnsrecord-show $z '@'
+		ipa dnsrecord-show $z '@'
+		echo About to try ipa dnsrecord-add $z '@' --ns-rec=$(hostname).
+		ipa dnsrecord-add $z '@' --ns-rec=$(hostname).
+		echo About to try ipa dnsrecord-mod $z '@' --ns-rec=$(hostname).
+		ipa dnsrecord-mod $z '@' --ns-rec=$(hostname).
 		echo About to try Glue Records ipa dnsrecord-add/mod $(echo $z | sed -e 's/^[^.]*\.//') $(echo $z | sed -e 's/^\([^.]*\)\..*$/\1/') --ns-rec=$(hostname).
 		ipa dnsrecord-add $(echo $z | sed -e 's/^[^.]*\.//') $(echo $z | sed -e 's/^\([^.]*\)\..*$/\1/') --ns-rec=$(hostname).
 		ipa dnsrecord-mod $(echo $z | sed -e 's/^[^.]*\.//') $(echo $z | sed -e 's/^\([^.]*\)\..*$/\1/') --ns-rec=$(hostname).
