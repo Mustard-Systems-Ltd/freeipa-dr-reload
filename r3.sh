@@ -5,7 +5,7 @@ bdcn=$(echo $bzn | sed -e 's/^/dc=/' -e 's/\./,dc=/g')
 sed -r -e '/^(entry(dn|id|usn)|hasSubordinates|(create|modify)Timestamp|(creators|modifiers)Name|mepManaged(By|Entry)|parentid|passwordGraceUserTime|subschemaSubentry)/d' userRoot-recovery.ldif > nonmep-userRoot.ldif
 sed -i -r -e '/^nsaccountLock/d' nonmep-userRoot.ldif
 sed -i -r -e '/^nsUniqueId/d' nonmep-userRoot.ldif
-sed -i -r -e '/^idnsSOAserial/d' nonmep-userRoot.ldif
+sed -i -r -e '/^idnsSOAserial/s/^idnsSOAserial: .*$/idnsSOAserial: '"$(date +%s)"'/' nonmep-userRoot.ldif
 sed -i -e '/^dn.*cn=etc,'"${bdcn}"'/,/^$/{/^$/!d}' nonmep-userRoot.ldif
 sed -i -e '/^dn.*cn=kerberos,'"${bdcn}"'/,/^$/{/^$/!d}' nonmep-userRoot.ldif
 sed -i -e '/^memberOf: cn=replication managers,/d' nonmep-userRoot.ldif
