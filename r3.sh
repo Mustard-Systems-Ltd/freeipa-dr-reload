@@ -27,8 +27,8 @@ else
 	echo $PW | kinit admin@${brealm}
 	for z in $(ipa dnszone-find --pkey-only --sizelimit=2000 | awk '/^  Zone name:/ { print $3 } { next }') ; do
 		sleep 1
-		echo Results of ipa dnszone-show $z --all -raw
-		ipa dnszone-show $z --all -raw
+		echo Results of ipa dnszone-show $z --all --raw
+		ipa dnszone-show $z --all --raw
 		if $(echo $z | grep -q 'in-addr\.arpa\.$') ; then 
 			echo About to try ipa dnszone-mod $z --dynamic-update=TRUE
 			ipa dnszone-mod $z --dynamic-update=TRUE
@@ -36,8 +36,8 @@ else
 			echo About to try ipa dnszone-mod $z --update-policy='grant '"${brealm}"' krb5-self * A; grant '"${brealm}"' krb5-self * AAAA; grant '"${brealm}"' krb5-self * SSHFP;'
 			ipa dnszone-mod $z --update-policy='grant '"${brealm}"' krb5-self * A; grant '"${brealm}"' krb5-self * AAAA; grant '"${brealm}"' krb5-self * SSHFP;'
 		fi
-		echo Results of ipa dnsrecord-show $z '@'
-		ipa dnsrecord-show $z '@'
+		echo Results of ipa dnsrecord-show $z '@' --all --raw
+		ipa dnsrecord-show $z '@' --all --raw
 		echo About to try ipa dnsrecord-add $z '@' --ns-rec=$(hostname).
 		ipa dnsrecord-add $z '@' --ns-rec=$(hostname).
 		echo About to try ipa dnsrecord-mod $z '@' --ns-rec=$(hostname).
