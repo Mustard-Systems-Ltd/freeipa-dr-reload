@@ -14,7 +14,7 @@ sed -i -e '/^'"$(grep -Ei '^(dn: ipaUniqueID=.*,cn=hbac,'"${bdcn}"'|cn: allow_al
 sed -i -e '/^'"$(grep -Ei '^(dn: ipaUniqueID=.*,cn=caacls,cn=ca,'"${bdcn}"'|cn: hosts_services_caIPAserviceCert)' userRoot-recovery.ldif | grep -B 1 hosts_services_caIPAserviceCert | head -n 1)"'/,/^$/{/^$/!d}' nonmep-userRoot.ldif
 for lis in ${legacyipasvrs} ; do
 	sed -i -e '/^dn: krbprincipalname=HTTP\/'"${lis}"'.'"${bzn}"'@'"${brealm}"',cn=services,cn=accounts,'"${bdcn}"'/,/^$/{/^$/!d}' nonmep-userRoot.ldif
-done
+done ; unset lis
 systemctl --lines=0 status {dirsrv@${realmm},httpd,ipa-dnskeysyncd,ipa_memcached,kadmin,krb5kdc,named-pkcs11,pki-tomcatd@pki-tomcat}.service
 if [[ -z $PW ]] ; then
         echo Set PW you fool. Do not forget the leading space
@@ -28,7 +28,7 @@ else
 	for z in $(ipa dnszone-find --pkey-only --sizelimit=2000 | awk '/^  Zone name:/ { print $3 } { next }') ; do
 		sleep 1
 		if $(echo $z | grep -q 'in-addr\.arpa\.$') ; then 
-			ipa dnszone-mod $z ---dynamic-update=TRUE
+			ipa dnszone-mod $z --dynamic-update=TRUE
 		else
 			ipa dnszone-mod $z --update-policy='grant '"${brealm}"' krb5-self * A; grant '"${brealm}"' krb5-self * AAAA; grant '"${brealm}"' krb5-self * SSHFP;'
 		fi
@@ -39,16 +39,20 @@ else
 		ipa dnsrecord-mod $(echo $z | sed -e 's/^[^.]*\.//') $(echo $z | sed -e 's/^\([^.]*\)\..*$/\1/') --ns-rec=$(hostname).
 		echo About to try ipa dnszone-mod $z --name-server=$(hostname).
 		ipa dnszone-mod $z --name-server=$(hostname).
-	done
+	done ; unset z
 	echo Sleeping for 130
 	sleep 130
 	for lis in ${legacyipasvrs} ; do
 		#ipa-replica-manage del ${lis}.${bzn} #ipa-replica-manage del will not help
+		for hg in $(ipa hostgroup-find --pkey-only --sizelimit=500 --hosts=${lis}.${bzn} | awk '$1 == "Host-group:" { print $2 }') ; do
+			ipa hostgroup-add-member ${hg} --hosts=$(hostname)
+			ipa hostgroup-remove-member ${hg} --hosts=${lis}.${bzn}
+		done ; unset hg
 		for p in $(ipa service-find --pkey-only --sizelimit=2000 --man-by-hosts=${lis}.${bzn} | awk '$1 == "Principal:" { print $2 }') ; do
 			sleep 1
 			echo About to try ipa service-del $p
 			ipa service-del $p
-		done
+		done ; unset p
 		sleep 1
 		echo About to try ipa host-del ${lis}.${bzn} --updatedns
 		ipa host-del ${lis}.${bzn} --updatedns
@@ -64,7 +68,7 @@ else
 		#sleep 1
 		#echo About to try ipa dnsrecord-del cnames.${bzn}. $lis --del-all
 		#ipa dnsrecord-del cnames.${bzn}. $lis --del-all
-	done
+	done ; unset lis
 	echo Sleeping for 130
 	sleep 130
 	sudo -u dirsrv -- db2ldif -Z $realmm  -NU -n userRoot
