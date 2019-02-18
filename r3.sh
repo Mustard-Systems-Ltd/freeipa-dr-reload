@@ -5,6 +5,7 @@ bdcn=$(echo $bzn | sed -e 's/^/dc=/' -e 's/\./,dc=/g')
 sed -r -e '/^(entry(dn|id|usn)|hasSubordinates|(create|modify)Timestamp|(creators|modifiers)Name|mepManaged(By|Entry)|parentid|passwordGraceUserTime|subschemaSubentry)/d' userRoot-recovery.ldif > nonmep-userRoot.ldif
 sed -i -r -e '/^nsaccountLock/d' nonmep-userRoot.ldif
 sed -i -r -e '/^nsUniqueId/d' nonmep-userRoot.ldif
+sed -i -r -e '/^idnsSOAserial/d' nonmep-userRoot.ldif
 sed -i -e '/^dn.*cn=etc,'"${bdcn}"'/,/^$/{/^$/!d}' nonmep-userRoot.ldif
 sed -i -e '/^dn.*cn=kerberos,'"${bdcn}"'/,/^$/{/^$/!d}' nonmep-userRoot.ldif
 sed -i -e '/^memberOf: cn=replication managers,/d' nonmep-userRoot.ldif
@@ -27,9 +28,9 @@ else
 	for z in $(ipa dnszone-find --pkey-only --sizelimit=2000 | awk '/^  Zone name:/ { print $3 } { next }') ; do
 		sleep 1
 		if $(echo $z | grep -q 'in-addr\.arpa\.$') ; then 
-			echo reverse
+			ipa dnszone-mod $z ---dynamic-update=TRUE
 		else
-			echo normal
+			ipa dnszone-mod $z --update-policy='grant '"${brealm}"' krb5-self * A; grant '"${brealm}"' krb5-self * AAAA; grant '"${brealm}"' krb5-self * SSHFP;'
 		fi
 		echo About to try ipa dnsrecord-mod $z @ --ns-rec=$(hostname).
 		ipa dnsrecord-mod $z @ --ns-rec=$(hostname).
@@ -39,11 +40,10 @@ else
 		echo About to try ipa dnszone-mod $z --name-server=$(hostname).
 		ipa dnszone-mod $z --name-server=$(hostname).
 	done
-	#ipa-replica-manage del will not help
 	echo Sleeping for 130
 	sleep 130
 	for lis in ${legacyipasvrs} ; do
-		#ipa-replica-manage del ${lis}.${bzn}
+		#ipa-replica-manage del ${lis}.${bzn} #ipa-replica-manage del will not help
 		for p in $(ipa service-find --pkey-only --sizelimit=2000 --man-by-hosts=${lis}.${bzn} | awk '$1 == "Principal:" { print $2 }') ; do
 			sleep 1
 			echo About to try ipa service-del $p
