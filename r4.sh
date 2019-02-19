@@ -8,6 +8,20 @@ sleep 131
 sync ; ipactl stop ; sync
 sleep 2
 systemctl --lines=0 status {dirsrv@${realmm},httpd,ipa-dnskeysyncd,ipa_memcached,kadmin,krb5kdc,named-pkcs11,pki-tomcatd@pki-tomcat}.service
+sleep 10
+yum-config-manager --disable C7.2.1511-base
+sleep 2
+yum-config-manager --disable C7.2.1511-extras
+sleep 2
+yum-config-manager --disable C7.2.1511-updates
+sleep 2
+yum-config-manager --enable base
+sleep 2
+yum-config-manager --enable extras
+sleep 2
+yum-config-manager --enable updates
+sleep 2
+yum makecache
 sleep 2
 yum -y --setopt=multilib_policy=best --setopt=obsoletes=0 --exclude='*.i686' --skip-broken update
 sleep 2
