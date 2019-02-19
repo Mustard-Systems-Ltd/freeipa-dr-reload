@@ -42,7 +42,7 @@ else
 		ipa dnsrecord-add $z '@' --ns-rec=$(hostname).
 		echo About to try ipa dnsrecord-mod $z '@' --ns-rec=$(hostname).
 		ipa dnsrecord-mod $z '@' --ns-rec=$(hostname).
-		if [[ -n "$(echo $z | sed -e 's/[^.]//g')"  ]] ; then
+		if [[ -n "$(echo $z | sed -e 's/\.$//' -e 's/[^.]//g')"  ]] ; then
 			echo About to try Glue Records ipa dnsrecord-add/mod $(echo $z | sed -e 's/^[^.]*\.//') $(echo $z | sed -e 's/^\([^.]*\)\..*$/\1/') --ns-rec=$(hostname).
 			ipa dnsrecord-add $(echo $z | sed -e 's/^[^.]*\.//') $(echo $z | sed -e 's/^\([^.]*\)\..*$/\1/') --ns-rec=$(hostname).
 			ipa dnsrecord-mod $(echo $z | sed -e 's/^[^.]*\.//') $(echo $z | sed -e 's/^\([^.]*\)\..*$/\1/') --ns-rec=$(hostname).
