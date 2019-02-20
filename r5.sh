@@ -18,6 +18,7 @@ yum versionlock delete '*'
 yum versionlock list
 sleep 2
 yum -y --setopt=multilib_policy=best --exclude='*.i686' --skip-broken upgrade
+rpm -qa | grep -E 'krb5|samba|sss|gssproxy|hbac|ipa|slapi|ldap|pkcs|ldb|bind|named' | sort > packages-after-r5-skip-broken-upgrade.txt
 sleep 2
 systemctl --lines=0 status {dirsrv@${realmm},httpd,ipa-dnskeysyncd,ipa_memcached,kadmin,krb5kdc,named-pkcs11,pki-tomcatd@pki-tomcat}.service
 echo Sleeping for 131 then shutting down FreeIPA
@@ -31,6 +32,7 @@ sleep 10
 systemctl --lines=0 status {dirsrv@${realmm},httpd,ipa-dnskeysyncd,ipa_memcached,kadmin,krb5kdc,named-pkcs11,pki-tomcatd@pki-tomcat}.service
 sleep 10
 yum -y upgrade
+rpm -qa | grep -E 'krb5|samba|sss|gssproxy|hbac|ipa|slapi|ldap|pkcs|ldb|bind|named' | sort > packages-after-r5-upgrade.txt
 sleep 2
 sync
 systemctl --lines=0 status {dirsrv@${realmm},httpd,ipa-dnskeysyncd,ipa_memcached,kadmin,krb5kdc,named-pkcs11,pki-tomcatd@pki-tomcat}.service
