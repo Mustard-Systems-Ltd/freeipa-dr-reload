@@ -3,18 +3,44 @@ brealm=$(echo $bzn | tr '[a-z]' '[A-Z]')
 realmm=$(echo $brealm | tr '.' '-')
 yum makecache fast
 systemctl --lines=0 status {dirsrv@${realmm},httpd,ipa-dnskeysyncd,ipa_memcached,kadmin,krb5kdc,named-pkcs11,pki-tomcatd@pki-tomcat}.service
-echo Sleeping for 131
+echo Sleeping for 131 then shutting down FreeIPA
 sleep 131
-sync
-ipa-server-upgrade -y
+sync ; ipactl stop ; sync
+sleep 2
+systemctl --lines=0 status {dirsrv@${realmm},httpd,ipa-dnskeysyncd,ipa_memcached,kadmin,krb5kdc,named-pkcs11,pki-tomcatd@pki-tomcat}.service
+sleep 10
+systemctl stop {dirsrv@${realmm},httpd,ipa-dnskeysyncd,ipa_memcached,kadmin,krb5kdc,named-pkcs11,pki-tomcatd@pki-tomcat}.service
+sleep 10
+systemctl --lines=0 status {dirsrv@${realmm},httpd,ipa-dnskeysyncd,ipa_memcached,kadmin,krb5kdc,named-pkcs11,pki-tomcatd@pki-tomcat}.service
+sleep 10
+yum versionlock list
+yum versionlock delete '*'
+yum versionlock list
+sleep 2
+yum -y --setopt=multilib_policy=best --exclude='*.i686' --skip-broken upgrade
+sleep 2
+systemctl --lines=0 status {dirsrv@${realmm},httpd,ipa-dnskeysyncd,ipa_memcached,kadmin,krb5kdc,named-pkcs11,pki-tomcatd@pki-tomcat}.service
+echo Sleeping for 131 then shutting down FreeIPA
+sleep 301
+sync ; ipactl stop ; sync
+sleep 2
+systemctl --lines=0 status {dirsrv@${realmm},httpd,ipa-dnskeysyncd,ipa_memcached,kadmin,krb5kdc,named-pkcs11,pki-tomcatd@pki-tomcat}.service
+sleep 10
+systemctl stop {dirsrv@${realmm},httpd,ipa-dnskeysyncd,ipa_memcached,kadmin,krb5kdc,named-pkcs11,pki-tomcatd@pki-tomcat}.service
+sleep 10
+systemctl --lines=0 status {dirsrv@${realmm},httpd,ipa-dnskeysyncd,ipa_memcached,kadmin,krb5kdc,named-pkcs11,pki-tomcatd@pki-tomcat}.service
+sleep 10
+yum -y upgrade
 sleep 2
 sync
-echo Sleeping for 131
-sleep 131
-sync
+systemctl --lines=0 status {dirsrv@${realmm},httpd,ipa-dnskeysyncd,ipa_memcached,kadmin,krb5kdc,named-pkcs11,pki-tomcatd@pki-tomcat}.service
+sleep 10
+systemctl stop {dirsrv@${realmm},httpd,ipa-dnskeysyncd,ipa_memcached,kadmin,krb5kdc,named-pkcs11,pki-tomcatd@pki-tomcat}.service
+sleep 10
 systemctl --lines=0 status {dirsrv@${realmm},httpd,ipa-dnskeysyncd,ipa_memcached,kadmin,krb5kdc,named-pkcs11,pki-tomcatd@pki-tomcat}.service
 sleep 2
 echo Sleeping for 61
 sleep 61
 sync
-systemctl --lines=0 status {dirsrv@${realmm},httpd,ipa-dnskeysyncd,ipa_memcached,kadmin,krb5kdc,named-pkcs11,pki-tomcatd@pki-tomcat}.service
+echo Rebooting
+#sync ; ipactl stop ; sync ; exec shutdown -r now
