@@ -32,7 +32,9 @@ yum -y --setopt=obsoletes=0 install ipa-server ipa-server-dns
 sleep 2
 yum versionlock add ipa-server libldb libsss_nss_idmap
 sleep 2
-yum -y --setopt=obsoletes=0 install setroubleshoot-server bzip2 lsof strace
+yum -y --setopt=obsoletes=0 install setroubleshoot-server setools bzip2 lsof strace
+sleep 2
+sudo service auditd restart
 sleep 2
 yum -y upgrade libblkid dbus-libs avahi-libs libuuid libmount
 sleep 2

@@ -51,6 +51,7 @@ sleep 2
 sync
 sleep 2
 systemctl --lines=0 status {dirsrv@${realmm},httpd,ipa-dnskeysyncd,ipa_memcached,kadmin,krb5kdc,named-pkcs11,pki-tomcatd@pki-tomcat}.service
+echo Sleeping for 61 then rebooting
 sleep 61
 sync
 echo Rebooting
