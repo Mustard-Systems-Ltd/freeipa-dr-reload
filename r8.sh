@@ -4,7 +4,7 @@ realmm=$(echo $brealm | tr '.' '-')
 sleep 2
 package-cleanup -y --oldkernels --count=2
 sleep 2
-yum -y clean all
+yum -y --enablerepo=C7.2.1511-base --enablerepo=C7.2.1511-extras --enablerepo=C7.2.1511-updates --enablerepo=C7.5.1804-base --enablerepo=C7.5.1804-extras --enablerepo=C7.5.1804-updates clean all
 sleep 2
 yum makecache fast
 sleep 2
