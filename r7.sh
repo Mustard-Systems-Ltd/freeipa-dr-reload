@@ -61,7 +61,7 @@ systemctl --lines=0 status {dirsrv@${realmm},httpd,ipa-dnskeysyncd,kadmin,krb5kd
 sleep 10
 yum -y --setopt=multilib_policy=best --exclude='*.i686' downgrade ipa-server-4.6.4-10.el7.centos.2
 package-cleanup -y --oldkernels --count=2
-yum versionlock add kernel
+yum versionlock add ipa-server
 sleep 2
 sync
 echo Sleeping for 61 then rebooting
