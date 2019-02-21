@@ -15,6 +15,7 @@ systemctl --lines=0 status {dirsrv@${realmm},httpd,ipa-dnskeysyncd,ipa_memcached
 sleep 10
 yum versionlock list
 yum versionlock delete '*'
+yum versionlock add kernel
 yum versionlock list
 sleep 2
 yum -y --setopt=multilib_policy=best --exclude='*.i686' --skip-broken upgrade

@@ -30,7 +30,7 @@ yum -y --setopt=multilib_policy=best --exclude='*.i686' downgrade centos-release
 sleep 2
 yum -y --setopt=obsoletes=0 install ipa-server ipa-server-dns
 sleep 2
-yum versionlock add ipa-server libldb
+yum versionlock add ipa-server libldb libsss_nss_idmap
 sleep 2
 yum -y --setopt=obsoletes=0 install setroubleshoot-server bzip2 lsof strace
 sleep 2
