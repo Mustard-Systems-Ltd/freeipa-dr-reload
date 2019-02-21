@@ -25,7 +25,7 @@ sleep 10
 yum versionlock list
 yum versionlock delete '*'
 sleep 2
-package-cleanup --oldkernels --count=2
+package-cleanup -y --oldkernels --count=2
 sleep 2
 sync
 sleep 2

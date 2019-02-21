@@ -24,7 +24,7 @@ if [[ -s userRoot-recovery.ldif ]] ; then
 	echo ldapsearch -LLL -o ldif-wrap=no -H ldap://localhost -D \"cn=directory manager\" -w \"${PW}\" -b cn=${brealm},cn=kerberos,${bdcn} dn \| sed -e "'"'/^$/d ; s/^dn: //'"'" \| while read b \; do ldapdelete -r -H ldap://localhost -D \"cn=directory manager\" -w \"${PW}\" \${b} \; done >> /tmp/hack-krb-mk.sh
 	echo ldapadd -H ldap://localhost -D \"cn=directory manager\" -w \"${PW}\" -f nonmep-kerberos.ldif -c -S skipped-kerberos-$(date +%s).ldif >> /tmp/hack-krb-mk.sh
 fi
-package-cleanup --oldkernels --count=2
+package-cleanup -y --oldkernels --count=2
 sleep 2
 sync
 sleep 2
