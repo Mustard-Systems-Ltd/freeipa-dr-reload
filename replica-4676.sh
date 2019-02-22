@@ -43,5 +43,6 @@ sleep 11
 yum -y --setopt=obsoletes=0 install git watchdog
 sleep 2
 sync
+# ipa-replica-install # stuff
 echo Rebooting
 #exec shutdown -r now
