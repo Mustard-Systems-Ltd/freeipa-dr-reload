@@ -91,4 +91,6 @@ else
 	sudo -u dirsrv -- db2ldif -Z $realmm  -NU -n changelog
 	sleep 2
 	sudo -u dirsrv -- db2bak -Z $realmm 
+	ls -lrt /var/lib/dirsrv/slapd-${realmm}/ldif/*
 fi
+sync
