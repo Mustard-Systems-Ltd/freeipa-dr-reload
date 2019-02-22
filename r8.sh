@@ -1,3 +1,6 @@
+getenforce 
+setenforce 0
+getenforce
 . server.inc
 brealm=$(echo $bzn | tr '[a-z]' '[A-Z]')
 realmm=$(echo $brealm | tr '.' '-')
@@ -37,3 +40,6 @@ else
         sudo -u dirsrv -- db2bak -Z $realmm
 fi
 sync
+getenforce 
+setenforce 1
+getenforce

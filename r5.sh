@@ -1,3 +1,6 @@
+getenforce 
+setenforce 0
+getenforce
 . server.inc
 brealm=$(echo $bzn | tr '[a-z]' '[A-Z]')
 realmm=$(echo $brealm | tr '.' '-')

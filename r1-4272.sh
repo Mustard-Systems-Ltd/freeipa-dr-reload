@@ -1,3 +1,6 @@
+getenforce 
+setenforce 0
+getenforce 
 . server.inc
 nmcli connection modify eth0 ipv4.dns "${forwarder1},${forwarder2}"
 nmcli connection modify eth0 ipv4.dns-search "${bzn}"
