@@ -33,6 +33,13 @@ sleep 2
 sync
 sleep 2
 rpm -qa | grep -E 'krb5|samba|sss|gssproxy|hbac|ipa|slapi|ldap|pkcs|ldb|bind|named' | sort > packages-before-r7.txt
+yum -y --setopt=multilib_policy=best --exclude='*.i686' upgrade-to ipa-server-4.6.4-10.el7.centos.2 ipa-server-dns-4.6.4-10.el7.centos.2
+package-cleanup -y --oldkernels --count=2
+yum versionlock add ipa-server ipa-server-dns
+sync
+sleep 2
+rpm -qa | grep -E 'krb5|samba|sss|gssproxy|hbac|ipa|slapi|ldap|pkcs|ldb|bind|named' | sort > packages-upgrade-to-ipa-server-r7.txt
+sleep 2
 yum -y --setopt=multilib_policy=best --setopt=obsoletes=0 --exclude='*.i686' --skip-broken update
 rpm -qa | grep -E 'krb5|samba|sss|gssproxy|hbac|ipa|slapi|ldap|pkcs|ldb|bind|named' | sort > packages-after-r7-update.txt
 sleep 2
@@ -61,11 +68,6 @@ sleep 2
 sync
 sleep 2
 systemctl --lines=0 status {dirsrv@${realmm},httpd,ipa-dnskeysyncd,kadmin,krb5kdc,named-pkcs11,pki-tomcatd@pki-tomcat}.service
-sleep 10
-yum -y --setopt=multilib_policy=best --exclude='*.i686' downgrade ipa-server-4.6.4-10.el7.centos.2
-package-cleanup -y --oldkernels --count=2
-yum versionlock add ipa-server
-sleep 2
 sync
 echo Sleeping for 61 then rebooting
 sleep 61
