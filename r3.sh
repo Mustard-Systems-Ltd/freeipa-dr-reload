@@ -23,7 +23,20 @@ if [[ -z $PW ]] ; then
         echo Set PW you fool. Do not forget the leading space
 else
 	sleep 10
-        ldapadd -H ldap://localhost -D "cn=directory manager" -w $PW -f nonmep-userRoot.ldif -c -S skipped-userRoot-$(date +%s).ldif
+        ldapadd -H ldap://localhost -D "cn=directory manager" -w $PW -f nonmep-userRoot.ldif -c -S skipped-userRoot.ldif
+	sleep 2
+        cat /dev/null > redomebership.ldif
+        grep -E '^dn: .*(cn=admins,cn=groups,cn=accounts|cn=roles,cn=accounts|cn=privileges,cn=pbac)', skipped-userRoot.ldif | grep -vE 'cn=DNS Servers,cn=privileges,cn=pbac' | while read -r rmdn; do
+                if sed -n -e '/^'"${rmdn}"'/,/^$/{/^member: /p}' skipped-userRoot.ldif | grep -q '^member: ' ; then
+                        #echo "" >> redomebership.ldif
+                        #echo $rmdn >> redomebership.ldif
+                        #echo "changetype: modify" >> redomebership.ldif
+                        #sed -n -e '/^'"${rmdn}"'/,/^$/{/^member: /{s/^/add: member\n/;s/$/\n-/;p}}' skipped-userRoot.ldif | sed -e '$d' >> redomebership.ldif
+                        sed -n -e '/^'"${rmdn}"'/,/^$/{/^member: /{s/^/\n'"${rmdn}"'\nchangetype: modify\nadd: member\n/;p}}' skipped-userRoot.ldif >> redomebership.ldif
+                fi
+        done
+        mv skipped-userRoot.ldif skipped-userRoot-$(date +%s).ldif
+        ldapmodify -H ldap://localhost -D "cn=directory manager" -w $PW -f redomebership.ldif -c -S skipped-redomebership-$(date +%s).ldif
 	echo Sleeping for 130
 	sleep 130
 	kdestroy
@@ -84,11 +97,11 @@ else
 	done ; unset lis
 	echo Sleeping for 130
 	sleep 130
-	sudo -u dirsrv -- db2ldif -Z $realmm  -NU -n userRoot
+	sudo -u dirsrv -- db2ldif -Z $realmm -NU -n userRoot
 	sleep 2
-	sudo -u dirsrv -- db2ldif -Z $realmm  -NU -n ipaca
+	sudo -u dirsrv -- db2ldif -Z $realmm -NU -n ipaca
 	sleep 2
-	sudo -u dirsrv -- db2ldif -Z $realmm  -NU -n changelog
+	sudo -u dirsrv -- db2ldif -Z $realmm -NU -n changelog
 	sleep 2
 	sudo -u dirsrv -- db2bak -Z $realmm 
 	ls -lrt /var/lib/dirsrv/slapd-${realmm}/ldif/*
