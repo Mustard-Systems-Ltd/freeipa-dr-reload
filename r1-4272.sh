@@ -7,6 +7,12 @@ nmcli connection modify eth0 ipv4.dns-search "${bzn}"
 hostnamectl set-hostname $(hostname | sed -e 's/^\([^.]*\)\..*$/\1/').${bzn}
 systemctl restart network.service
 sleep 3
+echo '[Journal]
+Storage=persistent
+SystemMaxUse=250M
+MaxRetentionSec=13month' > /etc/systemd/journald.conf.d/mustard_recommeds.conf
+systemctl reload systemd-journald.service
+sleep 2
 yum makecache
 sleep 2
 yum -y update centos-release
@@ -54,7 +60,7 @@ sleep 2
 systemctl enable haveged.service
 systemctl start haveged.service
 sleep 11
-yum -y --setopt=obsoletes=0 install git
+yum -y --setopt=obsoletes=0 install git watchdog
 sleep 2
 sync
 echo Rebooting
