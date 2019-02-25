@@ -13,6 +13,12 @@ SystemMaxUse=250M
 MaxRetentionSec=13month' > /etc/systemd/journald.conf.d/mustard_recommeds.conf
 systemctl reload systemd-journald.service
 sleep 2
+sed -i -e '/^GRUB_SERIAL_COMMAND/d' -e '/^GRUB_TERMINAL_OUTPUT=/{s/=".*$/="console serial"/;a\
+GRUB_SERIAL_COMMAND="serial --speed=115200 --unit=0 --word=8 --parity=no --stop=1"
+}' /etc/default/grub
+grep -q '^GRUB_CMDLINE_LINUX.*console=ttyS' /etc/default/grub || sed -i -e '/^GRUB_CMDLINE_LINUX=/s/="/="console=tty0 console=ttyS0,115200n8 /' -e 's/ rhgb quiet"$/"/' /etc/default/grub
+grub2-mkconfig -o /boot/grub2/grub.cfg
+sleep 2
 yum makecache
 sleep 2
 yum -y --setopt=multilib_policy=best --exclude='*.i686' update
