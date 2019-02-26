@@ -7,11 +7,12 @@ nmcli connection modify eth0 ipv4.dns-search "${bzn}"
 hostnamectl set-hostname $(hostname | sed -e 's/^\([^.]*\)\..*$/\1/').${bzn}
 systemctl restart network.service
 sleep 3
+[[ -d /etc/systemd/journald.conf.d ]] || mkdir /etc/systemd/journald.conf.d
 echo '[Journal]
 Storage=persistent
 SystemMaxUse=250M
 MaxRetentionSec=13month' > /etc/systemd/journald.conf.d/mustard_recommeds.conf
-systemctl reload systemd-journald.service
+systemctl restart systemd-journald.service
 sleep 2
 sed -i -e '/^GRUB_SERIAL_COMMAND/d' -e '/^GRUB_TERMINAL_OUTPUT=/{s/=".*$/="console serial"/;a\
 GRUB_SERIAL_COMMAND="serial --speed=115200 --unit=0 --word=8 --parity=no --stop=1"
