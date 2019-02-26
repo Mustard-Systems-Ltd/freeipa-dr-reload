@@ -10,6 +10,11 @@ sleep 3
 brealm=$(echo $bzn | tr '[a-z]' '[A-Z]')
 realmm=$(echo $brealm | tr '.' '-')
 bdcn=$(echo $bzn | sed -e 's/^/dc=/' -e 's/\./,dc=/g')
+cro=""
+if [[ -s recover-ca.crt ]] ; then
+	# Harvest from the a legacy server with `certutil -L -d dbm:/etc/pki/pki-tomcat/alias -n 'caSigningCert cert-pki-ca' -a > recover-ca.crt`
+	cro="${cro} --ca-cert-file=recover-ca.crt "
+fi
 if [[ -s userRoot-recovery.ldif ]] ; then
 	sed -n -e '/^dn: .*cn='"${brealm}"',cn=kerberos,'"${bdcn}"'/,/^$/p' userRoot-recovery.ldif > nonmep-kerberos.ldif
 	sed -i -r -e '/^(entry(dn|id|usn)|hasSubordinates|(create|modify)Timestamp|(creators|modifiers)Name|mepManaged(By|Entry)|parentid|passwordGraceUserTime|subschemaSubentry)/d' nonmep-kerberos.ldif
@@ -34,7 +39,7 @@ sleep 2
 if [[ -z $PW ]] ; then
         echo Set PW you fool. Do not forget the leading space
 else
-        ipa-server-install -r ${brealm} -n ${bzn} -p $PW -a $PW --mkhomedir --hostname=$(hostname) --ip-address=$(ip route get 8.8.8.8 | awk '$(NF-1) == "src" { print $NF }') --ssh-trust-dns --setup-dns --no-host-dns --forwarder ${forwarder1} --forwarder ${forwarder2} -U
+        ipa-server-install -r ${brealm} -n ${bzn} -p $PW -a $PW --mkhomedir --hostname=$(hostname) --ip-address=$(ip route get 8.8.8.8 | awk '$(NF-1) == "src" { print $NF }') --ssh-trust-dns --setup-dns --no-host-dns --forwarder ${forwarder1} --forwarder ${forwarder2} -U ${cro}
 	ls -lrt ~/ca*
 	echo Sleeping for 130
 	sleep 130
