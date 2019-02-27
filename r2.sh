@@ -11,7 +11,7 @@ brealm=$(echo $bzn | tr '[a-z]' '[A-Z]')
 realmm=$(echo $brealm | tr '.' '-')
 bdcn=$(echo $bzn | sed -e 's/^/dc=/' -e 's/\./,dc=/g')
 cro=""
-if [[ -s recover-ca.crt ]] ; then
+if [[ -s recover-ca.key ]] ; then
 	# Harvest from the a legacy server with `certutil -L -d dbm:/etc/pki/pki-tomcat/alias -n 'caSigningCert cert-pki-ca' -a > recover-ca.crt`
 	cro="${cro} --ca-cert-file=recover-ca.crt "
 fi

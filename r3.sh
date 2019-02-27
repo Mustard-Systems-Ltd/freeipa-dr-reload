@@ -11,6 +11,7 @@ sed -i -r -e '/^nsUniqueId/d' nonmep-userRoot.ldif
 sed -i -r -e '/^idnsSOAserial/s/^idnsSOAserial: .*$/idnsSOAserial: '"$(date +%s)"'/' nonmep-userRoot.ldif
 sed -i -e '/^dn.*cn=etc,'"${bdcn}"'/,/^$/{/^$/!d}' nonmep-userRoot.ldif
 sed -i -e '/^dn.*cn=kerberos,'"${bdcn}"'/,/^$/{/^$/!d}' nonmep-userRoot.ldif
+sed -i -e '/^dn.*cn=sec,cn=dns,'"${bdcn}"'/,/^$/{/^$/!d}' nonmep-userRoot.ldif
 sed -i -e '/^memberOf: cn=replication managers,/d' nonmep-userRoot.ldif
 sed -i -e '/^objectClass: ipaReplTopoManagedServer/d' nonmep-userRoot.ldif
 sed -i -e '/^'"$(grep -Ei '^(dn: ipaUniqueID=.*,cn=hbac,'"${bdcn}"'|cn: allow_all)' userRoot-recovery.ldif | grep -B 1 allow_all | head -n 1)"'/,/^$/{/^$/!d}' nonmep-userRoot.ldif
