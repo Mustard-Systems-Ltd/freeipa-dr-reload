@@ -18,7 +18,7 @@ sed -i -e '/^'"$(grep -Ei '^(dn: ipaUniqueID=.*,cn=caacls,cn=ca,'"${bdcn}"'|cn: 
 for lis in ${legacyipasvrs} ; do
 	sed -i -e '/^dn: krbprincipalname=HTTP\/'"${lis}"'.'"${bzn}"'@'"${brealm}"',cn=services,cn=accounts,'"${bdcn}"'/,/^$/{/^$/!d}' nonmep-userRoot.ldif
 done ; unset lis
-systemctl --lines=0 status {dirsrv@${realmm},httpd,ipa-dnskeysyncd,ipa_memcached,kadmin,krb5kdc,named-pkcs11,pki-tomcatd@pki-tomcat}.service
+systemctl --lines=0 status {dirsrv@${realmm},httpd,certmonger,ipa-dnskeysyncd,ipa_memcached,kadmin,krb5kdc,named-pkcs11,pki-tomcatd@pki-tomcat}.service
 if [[ -z $PW ]] ; then
         echo Set PW you fool. Do not forget the leading space
 else

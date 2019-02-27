@@ -12,18 +12,18 @@ sleep 2
 yum makecache fast
 sleep 2
 sync
-systemctl --lines=0 status {dirsrv@${realmm},httpd,ipa-dnskeysyncd,ipa_memcached,kadmin,krb5kdc,named-pkcs11,pki-tomcatd@pki-tomcat}.service
+systemctl --lines=0 status {dirsrv@${realmm},httpd,certmonger,ipa-dnskeysyncd,kadmin,krb5kdc,named-pkcs11,pki-tomcatd@pki-tomcat}.service
 echo Sleeping for 131 then upgrading FreeIPA
 sleep 131
 ipa-server-upgrade -v
 echo Sleeping for 31
 sleep 31
 sync
-systemctl --lines=0 status {dirsrv@${realmm},httpd,ipa-dnskeysyncd,ipa_memcached,kadmin,krb5kdc,named-pkcs11,pki-tomcatd@pki-tomcat}.service
+systemctl --lines=0 status {dirsrv@${realmm},httpd,certmonger,ipa-dnskeysyncd,kadmin,krb5kdc,named-pkcs11,pki-tomcatd@pki-tomcat}.service
 top -bn 1 | head -n 15
 echo Sleeping for 31 again
 sleep 31
-systemctl --lines=0 status {dirsrv@${realmm},httpd,ipa-dnskeysyncd,ipa_memcached,kadmin,krb5kdc,named-pkcs11,pki-tomcatd@pki-tomcat}.service
+systemctl --lines=0 status {dirsrv@${realmm},httpd,certmonger,ipa-dnskeysyncd,kadmin,krb5kdc,named-pkcs11,pki-tomcatd@pki-tomcat}.service
 top -bn 1 | head -n 15
 sleep 2
 fstrim /
