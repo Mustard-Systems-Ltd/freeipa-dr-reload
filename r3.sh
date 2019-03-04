@@ -6,7 +6,7 @@ brealm=$(echo $bzn | tr '[a-z]' '[A-Z]')
 realmm=$(echo $brealm | tr '.' '-')
 bdcn=$(echo $bzn | sed -e 's/^/dc=/' -e 's/\./,dc=/g')
 sed -r -e '/^(entry(dn|id|usn)|hasSubordinates|(create|modify)Timestamp|(creators|modifiers)Name|mepManaged(By|Entry)|parentid|passwordGraceUserTime|subschemaSubentry)/d' userRoot-recovery.ldif > nonmep-userRoot.ldif
-sed -i -r -e '/^nsaccountLock/d' nonmep-userRoot.ldif
+sed -i -r -e '/^nsAccountLock/d' nonmep-userRoot.ldif
 sed -i -r -e '/^nsUniqueId/d' nonmep-userRoot.ldif
 sed -i -r -e '/^idnsSOAserial/s/^idnsSOAserial: .*$/idnsSOAserial: '"$(date +%s)"'/' nonmep-userRoot.ldif
 sed -i -e '/^dn.*cn=etc,'"${bdcn}"'/,/^$/{/^$/!d}' nonmep-userRoot.ldif
