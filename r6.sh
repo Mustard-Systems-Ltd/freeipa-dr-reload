@@ -9,6 +9,8 @@ systemctl --lines=0 status {dirsrv@${realmm},httpd,certmonger,ipa-dnskeysyncd,ip
 echo Sleeping for 131 then upgrading FreeIPA
 sleep 131
 ipa-server-upgrade -v
+[[ -r /var/log/ipaserver-install.log ]] && mv /var/log/ipaserver-install.log /var/log/ipaserver-install.$(date +%s).log
+[[ -r /var/log/ipaupgrade.log ]] && mv /var/log/ipaupgrade.log /var/log/ipaupgrade.$(date +%s).log
 echo Sleeping for 31
 sleep 31
 systemctl --lines=0 status {dirsrv@${realmm},httpd,certmonger,ipa-dnskeysyncd,ipa_memcached,kadmin,krb5kdc,named-pkcs11,pki-tomcatd@pki-tomcat}.service
@@ -35,6 +37,8 @@ sleep 2
 rpm -qa | grep -E 'krb5|samba|sss|gssproxy|hbac|ipa|slapi|ldap|pkcs|ldb|bind|named' | sort > packages-before-r6.txt
 yum -y --setopt=multilib_policy=best --setopt=obsoletes=0 --exclude='*.i686' --skip-broken update
 rpm -qa | grep -E 'krb5|samba|sss|gssproxy|hbac|ipa|slapi|ldap|pkcs|ldb|bind|named' | sort > packages-after-r6-skip-broken-update.txt
+[[ -r /var/log/ipaserver-install.log ]] && mv /var/log/ipaserver-install.log /var/log/ipaserver-install.$(date +%s).log
+[[ -r /var/log/ipaupgrade.log ]] && mv /var/log/ipaupgrade.log /var/log/ipaupgrade.$(date +%s).log
 sleep 2
 sync
 sleep 2
@@ -42,11 +46,15 @@ systemctl --lines=0 status {dirsrv@${realmm},httpd,certmonger,ipa-dnskeysyncd,ip
 sleep 10
 yum -y --setopt=multilib_policy=best --exclude='*.i686' --skip-broken upgrade
 rpm -qa | grep -E 'krb5|samba|sss|gssproxy|hbac|ipa|slapi|ldap|pkcs|ldb|bind|named' | sort > packages-after-r6-skip-broken-upgrade.txt
+[[ -r /var/log/ipaserver-install.log ]] && mv /var/log/ipaserver-install.log /var/log/ipaserver-install.$(date +%s).log
+[[ -r /var/log/ipaupgrade.log ]] && mv /var/log/ipaupgrade.log /var/log/ipaupgrade.$(date +%s).log
 sleep 2
 systemctl --lines=0 status {dirsrv@${realmm},httpd,certmonger,ipa-dnskeysyncd,ipa_memcached,kadmin,krb5kdc,named-pkcs11,pki-tomcatd@pki-tomcat}.service
 sleep 10
 yum -y upgrade
 rpm -qa | grep -E 'krb5|samba|sss|gssproxy|hbac|ipa|slapi|ldap|pkcs|ldb|bind|named' | sort > packages-after-r6-upgrade.txt
+[[ -r /var/log/ipaserver-install.log ]] && mv /var/log/ipaserver-install.log /var/log/ipaserver-install.$(date +%s).log
+[[ -r /var/log/ipaupgrade.log ]] && mv /var/log/ipaupgrade.log /var/log/ipaupgrade.$(date +%s).log
 sleep 2
 sync
 sleep 2
