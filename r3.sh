@@ -42,6 +42,12 @@ else
 	sleep 130
 	kdestroy
 	echo $PW | kinit admin@${brealm}
+        for du in $(grep -E '^dn:|nsAccountLock' userRoot-recovery.ldif | grep -B 1 nsAccountLock | grep '^dn' | grep 'cn=users,cn=accounts,'"${bdcn}" | grep -v '^dn: uid=admin,' | sed -e 's/^dn: uid=//' -e 's/,cn=users,cn=accounts,'"${bdcn}"'//') ; do
+                echo Attempting ipa user-disable $du
+                ipa user-disable $du
+	done
+	echo Sleeping for 10
+	sleep 10
 	for z in $(ipa dnszone-find --pkey-only --sizelimit=2000 | awk '/^  Zone name:/ { print $3 } { next }') ; do
 		sleep 1
 		echo Results of ipa dnszone-show $z --all --raw
