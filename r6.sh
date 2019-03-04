@@ -8,6 +8,11 @@ yum makecache fast
 systemctl --lines=0 status {dirsrv@${realmm},httpd,certmonger,ipa-dnskeysyncd,ipa_memcached,kadmin,krb5kdc,named-pkcs11,pki-tomcatd@pki-tomcat}.service
 echo Sleeping for 131 then upgrading FreeIPA
 sleep 131
+echo $PW | kinit admin
+ipa domainlevel-get
+ipa domainlevel-set 1
+kdestroy
+sleep 2
 ipa-server-upgrade -v
 [[ -r /var/log/ipaserver-install.log ]] && mv /var/log/ipaserver-install.log /var/log/ipaserver-install.$(date +%s).log
 [[ -r /var/log/ipaupgrade.log ]] && mv /var/log/ipaupgrade.log /var/log/ipaupgrade.$(date +%s).log

@@ -58,4 +58,4 @@ echo Sleeping for 61
 sleep 61
 sync
 echo Rebooting
-#sync ; ipactl stop ; sync ; exec shutdown -r now
+sync ; ipactl stop ; sync ; exec shutdown -r now
