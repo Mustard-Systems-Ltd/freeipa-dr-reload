@@ -7,6 +7,8 @@ nmcli connection modify eth0 ipv4.dns-search "${bzn}"
 hostnamectl set-hostname $(hostname | sed -e 's/^\([^.]*\)\..*$/\1/').${bzn}
 systemctl restart network.service
 sleep 3
+echo 'dirsrv soft nofile 4096' > /etc/security/limits.d/71-mustard-dirsrv.conf
+echo 'dirsrv hard nofile 8192' >> /etc/security/limits.d/71-mustard-dirsrv.conf
 [[ -d /etc/systemd/journald.conf.d ]] || mkdir /etc/systemd/journald.conf.d
 echo '[Journal]
 Storage=persistent
