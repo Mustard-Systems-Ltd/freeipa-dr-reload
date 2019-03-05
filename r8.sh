@@ -56,6 +56,29 @@ else
         sleep 2
         sudo -u dirsrv -- db2bak -Z $realmm
 	ls -lrt /var/lib/dirsrv/slapd-${realmm}/ldif/*
+	sleep 2
+	ipa-kra-install -p $PW -U
+        sudo -u dirsrv -- db2ldif -Z $realmm -NU -n userRoot
+        sleep 2
+        sudo -u dirsrv -- db2ldif -Z $realmm -NU -n ipaca
+        sleep 2
+        sudo -u dirsrv -- db2ldif -Z $realmm -NU -n changelog
+        sleep 2
+        sudo -u dirsrv -- db2bak -Z $realmm
+	ls -lrt /var/lib/dirsrv/slapd-${realmm}/ldif/*
+        sleep 2
+	ipa-pkinit-manage status
+	ipa-pkinit-manage enable
+        sleep 2
+        sudo -u dirsrv -- db2ldif -Z $realmm -NU -n userRoot
+        sleep 2
+        sudo -u dirsrv -- db2ldif -Z $realmm -NU -n ipaca
+        sleep 2
+        sudo -u dirsrv -- db2ldif -Z $realmm -NU -n changelog
+        sleep 2
+        sudo -u dirsrv -- db2bak -Z $realmm
+	ls -lrt /var/lib/dirsrv/slapd-${realmm}/ldif/*
+        sleep 2
 fi
 sync
 getenforce 
