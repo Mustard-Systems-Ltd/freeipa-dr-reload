@@ -20,9 +20,13 @@ else
 	exit 1
 fi
 rip=$1
+mip=$(ip route get 8.8.8.8 | awk '$(NF-1) == "src" { print $NF }')
 if [[ -z $PW ]] ; then
-        (>&2 echo "Set PW you fool. Do not forget the leading space)
+        (>&2 echo "Set PW you fool. Do not forget the leading space")
 	exit 1
+else
+	( echo $PW | kinit admin >/dev/null 2>&1) || exit $?
+	kdestroy
 fi
 
 remote()
@@ -61,11 +65,16 @@ rreboot()
         ripass
 }
 
-remote nmcli connection modify eth0 ipv4.dns \"$(ip route get 8.8.8.8 | awk '$(NF-1) == "src" { print $NF }')\"
+remote nmcli connection modify eth0 ipv4.dns \"${mip}\"
 remote nmcli connection modify eth0 ipv4.dns-search "${bzn}"
-remote hostnamectl set-hostname $(remote hostname | sed -e 's/^\([^.]*\)\..*$/\1/').${bzn}
+urhn=$(remote hostname | sed -e 's/^\([^.]*\)\..*$/\1/')
+remote hostnamectl set-hostname ${urhn}.${bzn}
+remote nmcli connection modify eth0 802-3-ethernet.mtu 1454
 remote exec systemctl restart network.service
 sleep 3
+brealm=$(echo $bzn | tr '[a-z]' '[A-Z]')
+realmm=$(echo $brealm | tr '.' '-')
+bdcn=$(echo $bzn | sed -e 's/^/dc=/' -e 's/\./,dc=/g')
 remote getenforce 
 remote setenforce 0
 remote getenforce 
@@ -102,6 +111,8 @@ remote yum -y --setopt=obsoletes=0 install ipa-server-4.6.4-10.el7.centos.2 ipa-
 sleep 2
 remote yum versionlock add ipa-server ipa-server-dns
 sleep 2
+remote yum -y --setopt=obsoletes=0 install wget
+sleep 2
 remote yum -y --setopt=obsoletes=0 install setroubleshoot-server setools bzip2 lsof strace
 sleep 2
 remote sudo service auditd restart
@@ -123,4 +134,16 @@ remote yum -y --setopt=obsoletes=0 install git watchdog
 sleep 2
 rreboot
 
+echo $PW | kinit admin
+ipa dnsrecord-add ${bzn}. ${urhn} --a-ip-address=${1} --a-create-reverse
+
+remote systemctl start certmonger.service
+sleep 5
+#remote wget -O /tmp/ca$$.crt http://$(hostname)/ipa/config/ca.crt 
+#certutil -L -d dbm:/etc/pki/pki-tomcat/alias -n 'caSigningCert cert-pki-ca' -a > /tmp/ca$$.crt
+#rscp /tmp/ca$$.crt
+#rm -f /tmp/ca$$.crt
+#remote ipa-client-install --domain=${bzn} --server=$(hostname) --realm=${brealm} -p admin@${brealm} -w $PW --mkhomedir --ssh-trust-dns -U --ca-cert-file=/tmp/ca$$.crt --request-cert --permit --enable-dns-updates 
+#remote rm /tmp/ca$$.crt
+remote ipa-client-install --domain=${bzn} --server=$(hostname) --realm=${brealm} -p admin@${brealm} -w $PW --mkhomedir --ssh-trust-dns -U --request-cert --permit --enable-dns-updates 
 
