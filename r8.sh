@@ -41,13 +41,8 @@ else
 	ls -lrt /var/lib/dirsrv/slapd-${realmm}/ldif/*
         sleep 2
 	kdestroy
-        sleep 2
-	ipa-cacert-manage -p $PW renew --self-signed
-        sleep 2
-	echo $PW | kinit admin
-        sleep 2
-	ipa-certupdate
-        sleep 2
+	sleep 2
+	ipa-kra-install -p $PW -U
         sudo -u dirsrv -- db2ldif -Z $realmm -NU -n userRoot
         sleep 2
         sudo -u dirsrv -- db2ldif -Z $realmm -NU -n ipaca
@@ -56,8 +51,13 @@ else
         sleep 2
         sudo -u dirsrv -- db2bak -Z $realmm
 	ls -lrt /var/lib/dirsrv/slapd-${realmm}/ldif/*
-	sleep 2
-	ipa-kra-install -p $PW -U
+        sleep 2
+	ipa-cacert-manage -p $PW renew --self-signed
+        sleep 2
+	echo $PW | kinit admin
+        sleep 2
+	ipa-certupdate
+        sleep 2
         sudo -u dirsrv -- db2ldif -Z $realmm -NU -n userRoot
         sleep 2
         sudo -u dirsrv -- db2ldif -Z $realmm -NU -n ipaca
