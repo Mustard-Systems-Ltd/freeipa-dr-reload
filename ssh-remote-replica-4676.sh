@@ -20,6 +20,10 @@ else
 	exit 1
 fi
 rip=$1
+if [[ -z $PW ]] ; then
+        (>&2 echo "Set PW you fool. Do not forget the leading space)
+	exit 1
+fi
 
 remote()
 {
@@ -29,6 +33,32 @@ remote()
 rscp()
 {
 	scp -p -o IdentityAgent=none -o PreferredAuthentications=publickey -o ConnectTimeout=8 ${1} root@${rip}:${1}
+}
+
+
+ripass()
+{
+        remote systemctl --lines=0 status dirsrv@${realmm}.service
+        remote systemctl --lines=0 status {httpd,certmonger,ipa-dnskeysyncd,ipa_memcached,kadmin,krb5kdc,named-pkcs11,pki-tomcatd@pki-tomcat}.service
+}
+
+rreboot()
+{
+        ripass
+        remote sync
+        remote ipactl stop
+        remote sync
+	echo Rebooting
+        remote exec shutdown -r now
+        while ! remote true >/dev/null 2>&1 ; do
+                echo Waiting for reboot ...
+                sleep 11
+        done
+        echo Reboot is ready for SSH
+        ripass
+        echo Sleeping for 61
+        sleep 61
+        ripass
 }
 
 remote nmcli connection modify eth0 ipv4.dns \"$(ip route get 8.8.8.8 | awk '$(NF-1) == "src" { print $NF }')\"
@@ -61,39 +91,36 @@ remote sed -i -f /tmp/sed1.$$ /etc/default/grub
 remote rm -f /tmp/sed1.$$
 remote grep -q "'"'^GRUB_CMDLINE_LINUX.*console=ttyS'"'" /etc/default/grub \|\| sed -i -e "'"'/^GRUB_CMDLINE_LINUX=/s/="/="console=tty0 console=ttyS0,115200n8 /'"'" -e "'"'s/ rhgb quiet"$/"/'"'" /etc/default/grub
 remote grub2-mkconfig -o /boot/grub2/grub.cfg
-remote cat /etc/default/grub
 sleep 2
 remote yum makecache
 sleep 2
 remote yum -y --setopt=multilib_policy=best --exclude="'"'*.i686'"'" update
 sleep 2
-exit 0
-#remote yum -y --setopt=multilib_policy=best --exclude="'"'*.i686'"'" install yum-versionlock yum-utils
+remote yum -y --setopt=multilib_policy=best --exclude="'"'*.i686'"'" install yum-versionlock yum-utils
 sleep 2
-#remote yum -y --setopt=obsoletes=0 install ipa-server-4.6.4-10.el7.centos.2 ipa-server-dns-4.6.4-10.el7.centos.2
+remote yum -y --setopt=obsoletes=0 install ipa-server-4.6.4-10.el7.centos.2 ipa-server-dns-4.6.4-10.el7.centos.2
 sleep 2
-#remote yum versionlock add ipa-server ipa-server-dns
+remote yum versionlock add ipa-server ipa-server-dns
 sleep 2
-#remote yum -y --setopt=obsoletes=0 install setroubleshoot-server setools bzip2 lsof strace
+remote yum -y --setopt=obsoletes=0 install setroubleshoot-server setools bzip2 lsof strace
 sleep 2
-#remote sudo service auditd restart
+remote sudo service auditd restart
 sleep 2
-#remote yum -y --setopt=multilib_policy=best --setopt=obsoletes=0 --exclude="'"*.i686"'" --skip-broken update
+remote yum -y --setopt=multilib_policy=best --setopt=obsoletes=0 --exclude="'"*.i686"'" --skip-broken update
 sleep 2
-#remote yum -y --setopt=multilib_policy=best --exclude="'"'*.i686'"'" --skip-broken upgrade
+remote yum -y --setopt=multilib_policy=best --exclude="'"'*.i686'"'" --skip-broken upgrade
 sleep 2
-#remote yum -y --setopt=obsoletes=0 install epel-release
+remote yum -y --setopt=obsoletes=0 install epel-release
 sleep 2
-#remote yum makecache
+remote yum makecache
 sleep 2
-#remote yum -y --setopt=obsoletes=0 install haveged
+remote yum -y --setopt=obsoletes=0 install haveged
 sleep 2
-#remote systemctl enable haveged.service
-#remote systemctl start haveged.service
+remote systemctl enable haveged.service
+remote systemctl start haveged.service
 sleep 11
-#remote yum -y --setopt=obsoletes=0 install git watchdog
+remote yum -y --setopt=obsoletes=0 install git watchdog
 sleep 2
-#remote sync
-#remote # ipa-replica-install # stuff
-#remote echo Rebooting
-#remote #exec shutdown -r now
+rreboot
+
+
