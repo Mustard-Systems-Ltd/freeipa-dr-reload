@@ -3,6 +3,7 @@ setenforce 0
 getenforce 
 . server.inc
 nmcli connection modify eth0 ipv4.dns "${forwarder1},${forwarder2}"
+nmcli connection modify eth0 802-3-ethernet.mtu 1454
 nmcli connection modify eth0 ipv4.dns-search "${bzn}"
 hostnamectl set-hostname $(hostname | sed -e 's/^\([^.]*\)\..*$/\1/').${bzn}
 systemctl restart network.service
