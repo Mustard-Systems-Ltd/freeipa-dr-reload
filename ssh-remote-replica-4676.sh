@@ -146,4 +146,12 @@ sleep 5
 #remote ipa-client-install --domain=${bzn} --server=$(hostname) --realm=${brealm} -p admin@${brealm} -w $PW --mkhomedir --ssh-trust-dns -U --ca-cert-file=/tmp/ca$$.crt --request-cert --permit --enable-dns-updates 
 #remote rm /tmp/ca$$.crt
 remote ipa-client-install --domain=${bzn} --server=$(hostname) --realm=${brealm} -p admin@${brealm} -w $PW --mkhomedir --ssh-trust-dns -U --request-cert --permit --enable-dns-updates 
+echo Sleeping for 61
+sleep 61
 
+remote firewall-cmd --state
+remote systemctl --now disable firewalld.service
+remote ipa-replica-install -P admin@${brealm} -w $PW --mkhomedir --ssh-trust-dns -U --setup-dns --forwarder ${forwarder1} --forwarder ${forwarder2} --auto-reverse
+
+echo Sleeping for 61
+sleep 61
