@@ -71,11 +71,4 @@ urhn=$(remote hostname | sed -e 's/^\([^.]*\)\..*$/\1/')
 
 #echo $PW | kinit admin
 
-remote firewall-cmd --state
-remote systemctl --now disable firewalld.service
-#remote ipa-replica-install --domain=${bzn} --server=$(hostname) --realm=${brealm} -P admin@${brealm} -w $PW --mkhomedir --ssh-trust-dns -U --setup-dns --forwarder ${forwarder1} --forwarder ${forwarder2} --auto-reverse --force-join -d
-remote ipa-replica-install -P admin@${brealm} -w $PW --mkhomedir --ssh-trust-dns -U --setup-dns --forwarder ${forwarder1} --forwarder ${forwarder2} --auto-reverse --force-join -d
-
-# --setup-kra
-# --no-pkinit
 
