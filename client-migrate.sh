@@ -159,7 +159,7 @@ else
 	esac
 fi
 
-oldkrb=$(sudo nmap -n -Pn -sU -p U:88 -oG - $(dig +short -t srv _kerberos._udp.${bzn}. | awk '{ print $NF}') | awk '/Ports: 88\/open/ { print $2 } { next }')
+oldkrb="$(sudo nmap -n -Pn -sU -p U:88 -oG - $(dig +short -t srv _kerberos._udp.${bzn}. | awk '{ print $NF}') | awk '/Ports: 88\/open/ { print $2 } { next }')"
 
 if [[ $localkeepnmap == "no" ]] ; then
 	case ${OS}:${VER} in
@@ -177,32 +177,57 @@ if [[ $localkeepnmap == "no" ]] ; then
 	esac
 fi
 
-if ! remote_nmipa type nmap >/dev/null 2>&1 ; then
+if remote_nmipa type nmap >/dev/null 2>&1 ; then
+	nmikeepnmap=yes
+else
+	nmikeepnmap=no
 	sudo_remote_nmipa yum makecache fast
 	sudo_remote_nmipa yum -y --setopt=obsoletes=0 install epel-release
 	sudo_remote_nmipa yum makecache fast
 	sudo_remote_nmipa yum -y --setopt=multilib_policy=best --exclude='*.i686' install nmap
 fi
 
-newkrb=$(sudo_remote_nmipa nmap -n -Pn -sU -p U:88 -oG - $(remote_nmipa dig +short -t srv _kerberos._udp.${bzn}. | awk '{ print $NF}') | awk '/Ports: 88\/open/ { print $2 } { next }')
+newkrb="$(sudo_remote_nmipa nmap -n -Pn -sU -p U:88 -oG - $(remote_nmipa dig +short -t srv _kerberos._udp.${bzn}. | awk '{ print $NF}') | awk '/Ports: 88\/open/ { print $2 } { next }')"
+newdns2="$(echo $newkrb | head -n 2)"
+
+if [[ $nmikeepnmap == "no" ]] ; then
+	sudo_remote_nmipa yum -y autoremove nmap
+fi
 
 case ${RCOS}:${RCVER} in
 	Ubuntu:* )
 		pkgmeth=apt
 		if remote_cli type resolvconf >/dev/null 2>&1 ; then
 			resolvcmeth=resolconf
+			remote_cli test -s /run/resolvconf/resolv.conf && sudo_remote_cli bash -c \"cd /etc \; rm -f resolv.conf \; ln -s ../run/resolvconf/resolv.conf resolv.conf\"
+			touch /tmp/resolv.$$ ; chmod go-rwx /tmp/resolv.$$
+			remote_cli cat /run/resolvconf/resolv.conf | grep -vE '^#?nameserver' > /tmp/resolv.$$
+			for i in ${newdns2} ; do
+				sed -i -e '/^search /i\
+nameserver '"$i"'
+
+' /tmp/resolv.$$
+			done
+			cat /tmp/resolv.$$ | remote_cli cat \> /tmp/resolv.$$
+			sudo_remote_cli bash -c \"cat /tmp/resolv.$$ \> /run/resolvconf/resolv.conf \; rm -f /tmp/resolv.$$\"
+			rm -f /tmp/resolv.$$
+			remote_cli rm -f /tmp/resolv.$$
 		else
 			resolvcmeth=unknown
 			(>&2 echo "No resolvconf on this ${RCOS} ${RCVER} install")
+			exit 1
 		fi
 		;;
 	Centos:* )
 		pkgmeth=yum
 		if remote_cli type nmcli >/dev/null 2>&1 ; then
 			resolvcmeth=nmcli
+			(>&2 echo "TBD")
+			exit 1
 		else
 			resolvcmeth=unknown
 			(>&2 echo "No nmcli on this ${RCOS} ${RCVER} install")
+			exit 1
 		fi
 		;;
 	* )
