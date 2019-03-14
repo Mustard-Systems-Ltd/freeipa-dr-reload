@@ -130,7 +130,7 @@ sleep 2
 remote systemctl enable haveged.service
 remote systemctl start haveged.service
 sleep 11
-remote yum -y --setopt=obsoletes=0 install git watchdog
+remote yum -y --setopt=obsoletes=0 install git watchdog nmap
 sleep 2
 rreboot
 
