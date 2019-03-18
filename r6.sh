@@ -66,7 +66,7 @@ else
 	sleep 2
 	sync
 	sleep 2
-	sed -i -e 's/elevator=noop/elevator=kyber/' /etc/defult/grub
+	sed -i -e 's/ elevator=noop//' /etc/defult/grub
 	grub2-mkconfig -o /boot/grub2/grub.cfg
 	sleep 2
 	sync
