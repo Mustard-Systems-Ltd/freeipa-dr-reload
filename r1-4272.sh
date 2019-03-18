@@ -1,6 +1,13 @@
 getenforce 
 setenforce 0
 getenforce 
+sync
+sleep 2
+for d in $(grep -E 'deadline|cfq' /sys/block/*/queue/scheduler | grep -v '/sr' | sed -e 's/:.*$//') ; do
+	echo "noop" > ${d}
+done
+sleep 2
+sync
 . server.inc
 nmcli connection modify eth0 ipv4.dns "${forwarder1},${forwarder2}"
 nmcli connection modify eth0 802-3-ethernet.mtu 1454
@@ -22,6 +29,8 @@ GRUB_SERIAL_COMMAND="serial --speed=115200 --unit=0 --word=8 --parity=no --stop=
 }' /etc/default/grub
 grep -q '^GRUB_CMDLINE_LINUX.*console=ttyS' /etc/default/grub || sed -i -e '/^GRUB_CMDLINE_LINUX=/s/="/="console=tty0 console=ttyS0,115200n8 /' -e 's/ rhgb quiet"$/ elevator=noop"/' /etc/default/grub
 grub2-mkconfig -o /boot/grub2/grub.cfg
+sleep 2
+rpm -qa | grep -E 'krb5|samba|sss|gssproxy|hbac|ipa|slapi|ldap|pkcs|ldb|bind|named|389-ds|kernel-|pki-' | sort > packages-before-r1-4272.txt
 sleep 2
 yum makecache
 sleep 2
@@ -47,6 +56,8 @@ yum makecache
 sleep 2
 yum -y --setopt=multilib_policy=best --exclude='*.i686' downgrade centos-release-7-2.1511.el7.centos.2.10
 sleep 2
+rpm -qa | grep -E 'krb5|samba|sss|gssproxy|hbac|ipa|slapi|ldap|pkcs|ldb|bind|named|389-ds|kernel-|pki-' | sort > packages-r1-4272-before_ipa-server_install.txt
+sleep 2
 yum -y --setopt=obsoletes=0 install ipa-server ipa-server-dns
 sleep 2
 yum versionlock add ipa-server libldb libsss_nss_idmap
@@ -71,6 +82,8 @@ systemctl enable haveged.service
 systemctl start haveged.service
 sleep 11
 yum -y --setopt=obsoletes=0 install git watchdog nmap
+sleep 2
+rpm -qa | grep -E 'krb5|samba|sss|gssproxy|hbac|ipa|slapi|ldap|pkcs|ldb|bind|named|389-ds|kernel-|pki-' | sort > packages-after_r1-4272.txt
 sleep 2
 sync
 echo Rebooting

@@ -98,7 +98,7 @@ rscp /tmp/sed1.$$
 rm -f /tmp/sed1.$$
 remote sed -i -f /tmp/sed1.$$ /etc/default/grub
 remote rm -f /tmp/sed1.$$
-remote grep -q "'"'^GRUB_CMDLINE_LINUX.*console=ttyS'"'" /etc/default/grub \|\| sed -i -e "'"'/^GRUB_CMDLINE_LINUX=/s/="/="console=tty0 console=ttyS0,115200n8 /'"'" -e "'"'s/ rhgb quiet"$/ elevator=noop"/'"'" /etc/default/grub
+remote grep -q "'"'^GRUB_CMDLINE_LINUX.*console=ttyS'"'" /etc/default/grub \|\| sed -i -e "'"'/^GRUB_CMDLINE_LINUX=/s/="/="console=tty0 console=ttyS0,115200n8 /'"'" -e "'"'s/ rhgb quiet"$/ elevator=kyber"/'"'" /etc/default/grub
 remote grub2-mkconfig -o /boot/grub2/grub.cfg
 sleep 2
 remote yum makecache
