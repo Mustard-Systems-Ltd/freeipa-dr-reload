@@ -293,6 +293,48 @@ sudo_remote_cli klist
 sudo_remote_cli ipa-getkeytab -s ${newmaster} -p host/${fqclient} -k /etc/krb5.keytab
 sudo_remote_cli klist -k /etc/krb5.keytab
 
+touch /tmp/sssdsed.$$ ; chmod go-rwx /tmp/sssdsed.$$
+echo '
+/^ipa_server/s/^.*$/ipa_server = _srv_/
+' > /tmp/sssdsed.$$
+ls -l /tmp/sssdsed.$$
+cat /tmp/sssdsed.$$
+remote_cli touch /tmp/sssdsed.$$ \; chmod go-rwx /tmp/sssdsed.$$
+cat /tmp/sssdsed.$$ | remote_cli cat \> /tmp/sssdsed.$$
+rm -f /tmp/sssdsed.$$
+sudo_remote_cli cat /etc/sssd/sssd.conf
+sudo_remote_cli sed -i -f /tmp/sssdsed.$$ /etc/sssd/sssd.conf \; rm -f /tmp/sssdsed.$$
+sudo_remote_cli cat /etc/sssd/sssd.conf
+
+touch /tmp/krb5sed.$$ ; chmod go-rwx /tmp/krb5sed.$$
+echo '
+s/^\(\s*\)dns_lookup_kdc = .*/\1dns_lookup_kdc = true/
+s/^\(\s*\)#?kdc  = .*/\1#kdc = '"${newmaster}"':88/
+s/^\(\s*\)#?master_kdc  = .*/\1#master_kdc = '"${newmaster}"':88/
+s/^\(\s*\)admin_server = .*/\1admin_server = '"${newmaster}"':749/
+' > /tmp/krb5sed.$$
+ls -l /tmp/krb5sed.$$
+cat /tmp/krb5sed.$$
+remote_cli touch /tmp/krb5sed.$$ \; chmod go-rwx /tmp/krb5sed.$$
+cat /tmp/krb5sed.$$ | remote_cli cat \> /tmp/krb5sed.$$
+rm -f /tmp/krb5sed.$$
+sudo_remote_cli cat /etc/krb5.conf
+sudo_remote_cli sed -i -f /tmp/krb5sed.$$ /etc/krb5.conf \; rm -f /tmp/krb5sed.$$
+sudo_remote_cli cat /etc/krb5.conf
+
+case $rinitutil in
+	systemctl )
+		sudo_remote_cli bash -c \"systemctl stop sssd.service \; find /var/lib/sss/db -type f -print0 \| xargs -r0 rm -f \; systemctl start sssd.service\"
+	;;
+	initctl )
+		sudo_remote_cli bash -c \"initctl stop sssd.service \; find /var/lib/sss/db -type f -print0 \| xargs -r0 rm -f \; initctl start sssd.service\"
+	;;
+	* )
+		(>&2 echo "\$rinitutil undefined")
+		exit 1
+	;;
+esac
+
 
 
 echo Debug: hit the bottom ; exit 0
