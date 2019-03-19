@@ -58,10 +58,12 @@ fi
 
 cli=$2
 nmipaip=$1
+newmaster=$nmipaip
 userpw=$3
 
 remote_cli()
 {
+	echo -e "Via SSH to ${cli} as ${USER} about to try: $@" 1>&2
         ssh -o PreferredAuthentications=publickey -o ConnectTimeout=8 ${USER}@${cli} -- $@
 }
 
@@ -72,11 +74,13 @@ fi
 
 sudo_remote_cli()
 {
-        remote_cli echo ${userpw} \| sudo -p "''" -S $@
+	echo -e "sudo Via SSH to ${cli} as ${USER} about to try: sudo $@" 1>&2
+        (2>/dev/null remote_cli echo ${userpw} \| sudo -p "''" -S $@)
 }
 
 remote_nmipa()
 {
+	echo -e "nmi Via SSH to ${newmaster} as ${USER} about to try: $@" 1>&2
         ssh -o PreferredAuthentications=publickey -o ConnectTimeout=8 ${USER}@${nmipaip} -- $@
 }
 
@@ -87,7 +91,8 @@ fi
 
 sudo_remote_nmipa()
 {
-        remote_nmipa echo ${userpw} \| sudo -p "''" -S $@
+	echo -e "sudo nmi Via SSH to ${newmaster} as ${USER} about to try: sudo $@" 1>&2
+        (2>/dev/null remote_nmipa echo ${userpw} \| sudo -p "''" -S $@)
 }
 
 fqclient=$(remote_cli hostname --fqdn)
@@ -278,10 +283,17 @@ if [[ $keepwget == "no" ]] ; then
 	esac
 fi
 
-
+remote_cli kdestroy
+sudo_remote_cli kdestroy
+sudo_remote_cli ipa-rmkeytab -k /etc/krb5.keytab -r ${brealm} 
+sudo_remote_cli klist -k /etc/krb5.keytab
+echo -e "sudo Via SSH to ${cli} as ${USER} about to try: sudo bash -c \"echo YOURPASSWORD | kinit ${USER}\""
+sudo_remote_cli bash -c \"echo ${userpw} \| kinit ${USER}\" 2>/dev/null
+sudo_remote_cli klist
+sudo_remote_cli ipa-getkeytab -s ${newmaster} -p host/${fqclient} -k /etc/krb5.keytab
+sudo_remote_cli klist -k /etc/krb5.keytab
 
 
 
 echo Debug: hit the bottom ; exit 0
 
-#remote_cli echo ${userpw} \| kinit
