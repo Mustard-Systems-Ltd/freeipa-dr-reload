@@ -157,6 +157,7 @@ else
 			exit 1
 			;;
 	esac
+	localpkgrefreshed=true
 fi
 
 oldkrb="$(sudo nmap -n -Pn -sU -p U:88 -oG - $(dig +short -t srv _kerberos._udp.${bzn}. | awk '{ print $NF}') | awk '/Ports: 88\/open/ { print $2 } { next }')"
@@ -182,6 +183,7 @@ if remote_nmipa type nmap >/dev/null 2>&1 ; then
 else
 	nmikeepnmap=no
 	sudo_remote_nmipa yum makecache fast
+	nmipkgrefreshed=true
 	sudo_remote_nmipa yum -y --setopt=obsoletes=0 install epel-release
 	sudo_remote_nmipa yum makecache fast
 	sudo_remote_nmipa yum -y --setopt=multilib_policy=best --exclude='*.i686' install nmap
@@ -192,6 +194,12 @@ newdns2="$(echo $newkrb | head -n 2)"
 
 if [[ $nmikeepnmap == "no" ]] ; then
 	sudo_remote_nmipa yum -y autoremove nmap
+fi
+
+if remote_cli type wget >/dev/null 2>&1 ; then
+	keepwget=yes
+else
+	keepwget=no
 fi
 
 case ${RCOS}:${RCVER} in
@@ -217,6 +225,13 @@ nameserver '"$i"'
 			(>&2 echo "No resolvconf on this ${RCOS} ${RCVER} install")
 			exit 1
 		fi
+		if [[ $keepwget == "no" ]] ; then
+			if ! [[ $pkgrefreshed == "true" ]] ; then
+				sudo_remote_cli apt-get -y update >/dev/null 2>&1
+				pkgrefreshed=true
+			fi
+			sudo_remote_cli apt-get -y install wget
+		fi
 		;;
 	Centos:* )
 		pkgmeth=yum
@@ -229,6 +244,13 @@ nameserver '"$i"'
 			(>&2 echo "No nmcli on this ${RCOS} ${RCVER} install")
 			exit 1
 		fi
+		if [[ $keepwget == "no" ]] ; then
+			if ! [[ $pkgrefreshed == "true" ]] ; then
+				sudo_remote_cli yum makecache fast >/dev/null 2>&1
+				pkgrefreshed=true
+			fi
+			sudo_remote_cli yum -y --setopt=multilib_policy=best --exclude='*.i686' install wget
+		fi
 		;;
 	* )
 		pkgmeth=unknown
@@ -237,6 +259,26 @@ nameserver '"$i"'
 		exit 1
 		;;
 esac
+
+sudo_remote_cli wget -O /etc/ipa/ca.crt http://${newmaster}/ipa/config/ca.crt
+
+if [[ $keepwget == "no" ]] ; then
+	case ${RCOS}:${RCVER} in
+		Ubuntu:* )
+			sudo_remote_cli apt-get -y --purge remove wget
+			sudo_remote_cli apt-get -y autoremove
+			;;
+		Centos:* )
+			sudo_remote_cli yum -y autoremove wget
+			;;
+		* )
+			(>&2 echo "No support for ${OS} ${VER}")
+			exit 1
+			;;
+	esac
+fi
+
+
 
 
 
