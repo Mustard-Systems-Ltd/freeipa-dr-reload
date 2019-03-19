@@ -74,13 +74,13 @@ fi
 
 sudo_remote_cli()
 {
-	echo -e "sudo Via SSH to ${cli} as ${USER} about to try: sudo $@" 1>&2
+	echo -e "SSH to ${cli} as ${USER} about to try: sudo $@" 1>&2
         (2>/dev/null remote_cli echo ${userpw} \| sudo -p "''" -S $@)
 }
 
 remote_nmipa()
 {
-	echo -e "nmi Via SSH to ${newmaster} as ${USER} about to try: $@" 1>&2
+	echo -e "SSH to ${newmaster} as ${USER} about to try: $@" 1>&2
         ssh -o PreferredAuthentications=publickey -o ConnectTimeout=8 ${USER}@${nmipaip} -- $@
 }
 
@@ -91,7 +91,7 @@ fi
 
 sudo_remote_nmipa()
 {
-	echo -e "sudo nmi Via SSH to ${newmaster} as ${USER} about to try: sudo $@" 1>&2
+	echo -e "Via SSH to ${newmaster} as ${USER} about to try: sudo $@" 1>&2
         (2>/dev/null remote_nmipa echo ${userpw} \| sudo -p "''" -S $@)
 }
 
@@ -194,8 +194,18 @@ else
 	sudo_remote_nmipa yum -y --setopt=multilib_policy=best --exclude='*.i686' install nmap
 fi
 
-newkrb="$(sudo_remote_nmipa nmap -n -Pn -sU -p U:88 -oG - $(remote_nmipa dig +short -t srv _kerberos._udp.${bzn}. | awk '{ print $NF}') | awk '/Ports: 88\/open/ { print $2 } { next }')"
-newdns2="$(echo $newkrb | head -n 2)"
+newkrb="$(sudo_remote_nmipa nmap -n -Pn -sU -p U:88 -oG - $(remote_nmipa dig @127.0.0.1 +short -t srv _kerberos._udp.${bzn}. | awk '{ print $NF}') | awk '/Ports: 88\/open/ { print $2 } { next }')"
+upgrep=""
+for i in $newkrb ; do
+	upgrep="${upgrep}|$(remote_nmipa dig @127.0.0.1 +short -x ${i} | sed -e 's/\..*$//')"
+done
+upgrep="$(echo ${upgrep} | sed -e 's/^|//')"
+( remote_nmipa dig @127.0.0.1 +short -t srv _kerberos._udp.${bzn}. | awk '$1 == 0 && $4 ~ /'"${upgrep}"'/ { print $4 }'  ; remote_nmipa dig @127.0.0.1 +short -t srv _kerberos._udp.${bzn}. | awk '$1 > 0 && $4 ~ /'"${upgrep}"'/ { print $4 }' ) > /tmp/orderedcand.$$
+newdns2=""
+for i in $(head -n 2 /tmp/orderedcand.$$) ; do
+	newdns2="${newdns2} $(remote_nmipa dig @127.0.0.1 +short $i)"
+done
+rm -f /tmp/orderedndnscand.$$
 
 if [[ $nmikeepnmap == "no" ]] ; then
 	sudo_remote_nmipa yum -y autoremove nmap
@@ -297,28 +307,29 @@ touch /tmp/sssdsed.$$ ; chmod go-rwx /tmp/sssdsed.$$
 echo '
 /^ipa_server/s/^.*$/ipa_server = _srv_/
 ' > /tmp/sssdsed.$$
-ls -l /tmp/sssdsed.$$
-cat /tmp/sssdsed.$$
+#cat /tmp/sssdsed.$$
 remote_cli touch /tmp/sssdsed.$$ \; chmod go-rwx /tmp/sssdsed.$$
 cat /tmp/sssdsed.$$ | remote_cli cat \> /tmp/sssdsed.$$
 rm -f /tmp/sssdsed.$$
-sudo_remote_cli cat /etc/sssd/sssd.conf
+#sudo_remote_cli cat /etc/sssd/sssd.conf
 sudo_remote_cli sed -i -f /tmp/sssdsed.$$ /etc/sssd/sssd.conf \; rm -f /tmp/sssdsed.$$
 sudo_remote_cli cat /etc/sssd/sssd.conf
 
 touch /tmp/krb5sed.$$ ; chmod go-rwx /tmp/krb5sed.$$
 echo '
 s/^\(\s*\)dns_lookup_kdc = .*/\1dns_lookup_kdc = true/
-s/^\(\s*\)#?kdc  = .*/\1#kdc = '"${newmaster}"':88/
-s/^\(\s*\)#?master_kdc  = .*/\1#master_kdc = '"${newmaster}"':88/
-s/^\(\s*\)admin_server = .*/\1admin_server = '"${newmaster}"':749/
+/^\s*'"${brealm}"' = {/,/^\s*}\s*$/{
+/^\s*#*kdc = /d
+/^\s*#*master_kdc = /d
+/^\s*#*admin_server = /d
+s/^\(\s*\)pkinit_anchors = \(.*\)$/\1pkinit_anchors = \2\n\1#master_kdc = '"${newmaster}"':88\n\1admin_server = '"${newmaster}"':749\n/
+}
 ' > /tmp/krb5sed.$$
-ls -l /tmp/krb5sed.$$
-cat /tmp/krb5sed.$$
+#cat /tmp/krb5sed.$$
 remote_cli touch /tmp/krb5sed.$$ \; chmod go-rwx /tmp/krb5sed.$$
 cat /tmp/krb5sed.$$ | remote_cli cat \> /tmp/krb5sed.$$
 rm -f /tmp/krb5sed.$$
-sudo_remote_cli cat /etc/krb5.conf
+#sudo_remote_cli cat /etc/krb5.conf
 sudo_remote_cli sed -i -f /tmp/krb5sed.$$ /etc/krb5.conf \; rm -f /tmp/krb5sed.$$
 sudo_remote_cli cat /etc/krb5.conf
 
