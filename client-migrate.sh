@@ -322,7 +322,8 @@ s/^\(\s*\)dns_lookup_kdc = .*/\1dns_lookup_kdc = true/
 /^\s*#*kdc = /d
 /^\s*#*master_kdc = /d
 /^\s*#*admin_server = /d
-s/^\(\s*\)pkinit_anchors = \(.*\)$/\1pkinit_anchors = \2\n\1#master_kdc = '"${newmaster}"':88\n\1admin_server = '"${newmaster}"':749\n/
+/^\s*$/d
+s/^\(\s*\)pkinit_anchors = \(.*\)$/\1pkinit_anchors = \2\n\1#master_kdc = '"${newmaster}"':88\n\1admin_server = '"${newmaster}"':749/
 }
 ' > /tmp/krb5sed.$$
 #cat /tmp/krb5sed.$$
