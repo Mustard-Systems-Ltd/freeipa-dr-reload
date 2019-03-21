@@ -56,17 +56,53 @@ yum makecache
 sleep 2
 yum -y --setopt=multilib_policy=best --exclude='*.i686' downgrade centos-release-7-2.1511.el7.centos.2.10
 sleep 2
+rpm -qa | grep -E 'krb5|samba|sss|gssproxy|hbac|ipa|slapi|ldap|pkcs|ldb|bind|named|389-ds|kernel-|pki-|ntp|chrony' | sort > packages-r1-4272-before_fwd_chrony.txt
+sleep 2
+timedatectl status
+sleep 2
+yum -y --setopt=multilib_policy=best --setopt=obsoletes=0 --exclude='*.i686' install chrony firewalld
+sleep 2
+firewall-cmd --state
+sleep 2
+systemctl --now disable firewalld.service
+sleep 2
+timedatectl status
+
+
+
+sed -i -e '/# Allow NTP client access from local network\./,/^\s*$/{
+/^#*allow /d
+/^\s*$/i\
+allow 192.168\/16\
+allow 172\.16\/12\
+allow 10\/8
+}' /etc/chrony.conf
+
+yum -y --setopt=multilib_policy=best --setopt=obsoletes=0 --exclude='*.i686' install ntp
+sleep 2
+systemctl --now disable ntpd.service
+sleep 2
+timedatectl status
+sleep 2
+systemctl start chronyd.service
+sleep 10
+timedatectl status
+sleep 2
+
+
+
+sleep 2
 rpm -qa | grep -E 'krb5|samba|sss|gssproxy|hbac|ipa|slapi|ldap|pkcs|ldb|bind|named|389-ds|kernel-|pki-|ntp|chrony' | sort > packages-r1-4272-before_ipa-server_install.txt
 sleep 2
-yum -y --setopt=obsoletes=0 install ipa-server ipa-server-dns
+yum -y --setopt=multilib_policy=best --setopt=obsoletes=0 --exclude='*.i686' install ipa-server ipa-server-dns
 sleep 2
 yum versionlock add ipa-server libldb libsss_nss_idmap
 sleep 2
-yum -y --setopt=obsoletes=0 install setroubleshoot-server setools bzip2 lsof strace
+yum -y --setopt=multilib_policy=best --setopt=obsoletes=0 --exclude='*.i686' install setroubleshoot-server setools bzip2 lsof strace
 sleep 2
 sudo service auditd restart
 sleep 2
-yum -y upgrade libblkid dbus-libs avahi-libs libuuid libmount
+yum -y --setopt=multilib_policy=best --setopt=obsoletes=0 --exclude='*.i686' update libblkid dbus-libs avahi-libs libuuid libmount
 sleep 2
 yum -y --setopt=multilib_policy=best --setopt=obsoletes=0 --exclude='*.i686' --skip-broken update
 sleep 2
@@ -76,7 +112,7 @@ yum -y --setopt=obsoletes=0 install epel-release
 sleep 2
 yum makecache
 sleep 2
-yum -y --setopt=obsoletes=0 install haveged
+yum -y --setopt=multilib_policy=best --setopt=obsoletes=0 --exclude='*.i686' install haveged
 sleep 2
 systemctl enable haveged.service
 systemctl start haveged.service
@@ -86,5 +122,6 @@ sleep 2
 rpm -qa | grep -E 'krb5|samba|sss|gssproxy|hbac|ipa|slapi|ldap|pkcs|ldb|bind|named|389-ds|kernel-|pki-|ntp|chrony' | sort > packages-after_r1-4272.txt
 sleep 2
 sync
+sleep 2
 echo Rebooting
-exec shutdown -r now
+#exec shutdown -r now

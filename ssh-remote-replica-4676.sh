@@ -103,17 +103,43 @@ remote grub2-mkconfig -o /boot/grub2/grub.cfg
 sleep 2
 remote yum makecache
 sleep 2
+remote firewall-cmd --state
+remote systemctl --now disable firewalld.service
+sleep 2
 remote yum -y --setopt=multilib_policy=best --exclude="'"'*.i686'"'" update
 sleep 2
 remote yum -y --setopt=multilib_policy=best --exclude="'"'*.i686'"'" install yum-versionlock yum-utils
 sleep 2
-remote yum -y --setopt=obsoletes=0 install ipa-server-4.6.4-10.el7.centos.2 ipa-server-dns-4.6.4-10.el7.centos.2
+remote timedatectl status
+sleep 2
+remote systemctl stop chronyd.service
+sleep 2
+echo '/# Allow NTP client access from local network\./,/^\s*$/{
+/^#*allow /d
+/^\s*$/i\
+allow 192.168\/16\
+allow 172\.16\/12\
+allow 10\/8
+}' > /tmp/sed2.$$
+rscp /tmp/sed2.$$
+rm -f /tmp/sed2.$$
+remote sed -i -f /tmp/sed2.$$ /etc/chrony.conf
+remote rm -f /tmp/sed2.$$
+remote yum -y --setopt=multilib_policy=best --setopt=obsoletes=0 --exclude="'"'*.i686'"'" install ntp
+sleep 2
+remote systemctl --now disable ntpd.service
+sleep 2
+remote systemctl start chronyd.service
+sleep 10
+remote timedatectl status
+sleep 2
+remote yum -y --setopt=multilib_policy=best --setopt=obsoletes=0 --exclude="'"'*.i686'"'" install ipa-server-4.6.4-10.el7.centos.2 ipa-server-dns-4.6.4-10.el7.centos.2
 sleep 2
 remote yum versionlock add ipa-server ipa-server-dns
 sleep 2
-remote yum -y --setopt=obsoletes=0 install wget
+remote yum -y --setopt=multilib_policy=best --setopt=obsoletes=0 --exclude="'"'*.i686'"'" install wget
 sleep 2
-remote yum -y --setopt=obsoletes=0 install setroubleshoot-server setools bzip2 lsof strace
+remote yum -y --setopt=multilib_policy=best --setopt=obsoletes=0 --exclude="'"'*.i686'"'" install setroubleshoot-server setools bzip2 lsof strace
 sleep 2
 remote sudo service auditd restart
 sleep 2
@@ -125,12 +151,12 @@ remote yum -y --setopt=obsoletes=0 install epel-release
 sleep 2
 remote yum makecache
 sleep 2
-remote yum -y --setopt=obsoletes=0 install haveged
+remote yum -y --setopt=multilib_policy=best --setopt=obsoletes=0 --exclude="'"'*.i686'"'" install haveged
 sleep 2
 remote systemctl enable haveged.service
 remote systemctl start haveged.service
 sleep 11
-remote yum -y --setopt=obsoletes=0 install git watchdog nmap
+remote yum -y --setopt=multilib_policy=best --setopt=obsoletes=0 --exclude="'"'*.i686'"'" install git watchdog nmap
 sleep 2
 rreboot
 
@@ -147,13 +173,11 @@ sleep 5
 #rm -f /tmp/ca$$.crt
 #remote ipa-client-install --domain=${bzn} --server=$(hostname) --realm=${brealm} -p admin@${brealm} -w $PW --mkhomedir --ssh-trust-dns -U --ca-cert-file=/tmp/ca$$.crt --request-cert --permit --enable-dns-updates 
 #remote rm /tmp/ca$$.crt
-remote ipa-client-install --domain=${bzn} --server=$(hostname) --realm=${brealm} -p admin@${brealm} -w $PW --mkhomedir --ssh-trust-dns -U --request-cert --permit --enable-dns-updates 
+remote ipa-client-install --domain=${bzn} --server=$(hostname) --realm=${brealm} -p admin@${brealm} -w $PW -N --mkhomedir --ssh-trust-dns -U --request-cert --permit --enable-dns-updates 
 echo Sleeping for 61
 sleep 61
 
-remote firewall-cmd --state
-remote systemctl --now disable firewalld.service
-remote ipa-replica-install -P admin@${brealm} -w $PW --mkhomedir --ssh-trust-dns -U --setup-ca --setup-dns --forwarder ${forwarder1} --forwarder ${forwarder2} --auto-reverse
+remote ipa-replica-install -P admin@${brealm} -w $PW -N --mkhomedir --ssh-trust-dns -U --setup-ca --setup-dns --forwarder ${forwarder1} --forwarder ${forwarder2} --auto-reverse
 
 echo Sleeping for 61
 sleep 61
