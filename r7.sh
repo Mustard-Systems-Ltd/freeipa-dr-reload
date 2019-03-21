@@ -32,18 +32,18 @@ yum makecache
 sleep 2
 sync
 sleep 2
-rpm -qa | grep -E 'krb5|samba|sss|gssproxy|hbac|ipa|slapi|ldap|pkcs|ldb|bind|named|389-ds|kernel-|pki-' | sort > packages-before-r7.txt
+rpm -qa | grep -E 'krb5|samba|sss|gssproxy|hbac|ipa|slapi|ldap|pkcs|ldb|bind|named|389-ds|kernel-|pki-|ntp|chrony' | sort > packages-before-r7.txt
 yum -y --setopt=multilib_policy=best --exclude='*.i686' upgrade-to ipa-server-4.6.4-10.el7.centos.2 ipa-server-dns-4.6.4-10.el7.centos.2
 package-cleanup -y --oldkernels --count=2
 yum versionlock add ipa-server ipa-server-dns
 sync
 sleep 2
-rpm -qa | grep -E 'krb5|samba|sss|gssproxy|hbac|ipa|slapi|ldap|pkcs|ldb|bind|named|389-ds|kernel-|pki-' | sort > packages-upgrade-to-ipa-server-r7.txt
+rpm -qa | grep -E 'krb5|samba|sss|gssproxy|hbac|ipa|slapi|ldap|pkcs|ldb|bind|named|389-ds|kernel-|pki-|ntp|chrony' | sort > packages-upgrade-to-ipa-server-r7.txt
 [[ -r /var/log/ipaserver-install.log ]] && mv /var/log/ipaserver-install.log /var/log/ipaserver-install.$(date +%s).log
 [[ -r /var/log/ipaupgrade.log ]] && mv /var/log/ipaupgrade.log /var/log/ipaupgrade.$(date +%s).log
 sleep 2
 yum -y --setopt=multilib_policy=best --setopt=obsoletes=0 --exclude='*.i686' --skip-broken update
-rpm -qa | grep -E 'krb5|samba|sss|gssproxy|hbac|ipa|slapi|ldap|pkcs|ldb|bind|named|389-ds|kernel-|pki-' | sort > packages-after-r7-update.txt
+rpm -qa | grep -E 'krb5|samba|sss|gssproxy|hbac|ipa|slapi|ldap|pkcs|ldb|bind|named|389-ds|kernel-|pki-|ntp|chrony' | sort > packages-after-r7-update.txt
 [[ -r /var/log/ipaserver-install.log ]] && mv /var/log/ipaserver-install.log /var/log/ipaserver-install.$(date +%s).log
 [[ -r /var/log/ipaupgrade.log ]] && mv /var/log/ipaupgrade.log /var/log/ipaupgrade.$(date +%s).log
 sleep 2
@@ -60,14 +60,14 @@ sleep 10
 systemctl --lines=0 status {dirsrv@${realmm},httpd,certmonger,ipa-dnskeysyncd,kadmin,krb5kdc,named-pkcs11,pki-tomcatd@pki-tomcat}.service
 sleep 10
 yum -y --setopt=multilib_policy=best --exclude='*.i686' --skip-broken upgrade
-rpm -qa | grep -E 'krb5|samba|sss|gssproxy|hbac|ipa|slapi|ldap|pkcs|ldb|bind|named|389-ds|kernel-|pki-' | sort > packages-after-r7-skip-broken-upgrade.txt
+rpm -qa | grep -E 'krb5|samba|sss|gssproxy|hbac|ipa|slapi|ldap|pkcs|ldb|bind|named|389-ds|kernel-|pki-|ntp|chrony' | sort > packages-after-r7-skip-broken-upgrade.txt
 sleep 2
 sync
 sleep 2
 systemctl --lines=0 status {dirsrv@${realmm},httpd,certmonger,ipa-dnskeysyncd,kadmin,krb5kdc,named-pkcs11,pki-tomcatd@pki-tomcat}.service
 sleep 10
 yum -y upgrade
-rpm -qa | grep -E 'krb5|samba|sss|gssproxy|hbac|ipa|slapi|ldap|pkcs|ldb|bind|named|389-ds|kernel-|pki-' | sort > packages-after-r7-upgrade.txt
+rpm -qa | grep -E 'krb5|samba|sss|gssproxy|hbac|ipa|slapi|ldap|pkcs|ldb|bind|named|389-ds|kernel-|pki-|ntp|chrony' | sort > packages-after-r7-upgrade.txt
 sleep 2
 sync
 sleep 2

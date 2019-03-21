@@ -137,6 +137,8 @@ rreboot
 echo $PW | kinit admin
 ipa dnsrecord-add ${bzn}. ${urhn} --a-ip-address=${1} --a-create-reverse
 
+remote yum -y autoremove
+sleep 2
 remote systemctl start certmonger.service
 sleep 5
 #remote wget -O /tmp/ca$$.crt http://$(hostname)/ipa/config/ca.crt 

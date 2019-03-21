@@ -12,6 +12,12 @@ sleep 2
 yum makecache fast
 sleep 2
 sync
+sleep 2
+yum -y autoremove
+rpm -qa | grep -E 'krb5|samba|sss|gssproxy|hbac|ipa|slapi|ldap|pkcs|ldb|bind|named|389-ds|kernel-|pki-|ntp|chrony' | sort > packages-after-r8-autoremove.txt
+sleep 2
+sync
+sleep 2
 systemctl --lines=0 status {dirsrv@${realmm},httpd,certmonger,ipa-dnskeysyncd,kadmin,krb5kdc,named-pkcs11,pki-tomcatd@pki-tomcat}.service
 echo Sleeping for 131 then upgrading FreeIPA
 sleep 131
