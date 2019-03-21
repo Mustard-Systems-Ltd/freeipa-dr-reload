@@ -301,16 +301,6 @@ if [[ $keepwget == "no" ]] ; then
 	esac
 fi
 
-remote_cli kdestroy
-sudo_remote_cli kdestroy
-sudo_remote_cli ipa-rmkeytab -k /etc/krb5.keytab -r ${brealm} 
-[[ "${debugecho}" == "true" ]] && sudo_remote_cli klist -k /etc/krb5.keytab
-echo -e "Via SSH to ${cli} as ${USER} about to try: sudo bash -c \"echo YOURPASSWORD | kinit ${USER}\""
-sudo_remote_cli bash -c \"echo ${userpw} \| kinit ${USER}\" 2>/dev/null
-[[ "${debugecho}" == "true" ]] && sudo_remote_cli klist
-sudo_remote_cli ipa-getkeytab -s ${newmaster} -p host/${fqclient} -k /etc/krb5.keytab
-[[ "${debugecho}" == "true" ]] && sudo_remote_cli klist -k /etc/krb5.keytab
-
 touch /tmp/sssdsed.$$ ; chmod go-rwx /tmp/sssdsed.$$
 echo '
 /^ipa_server/s/^.*$/ipa_server = _srv_/
@@ -355,6 +345,16 @@ rm -f /tmp/ipadefdsed.$$
 [[ "${debugecho}" == "true" ]] && sudo_remote_cli cat /etc/ipa/default.conf
 sudo_remote_cli sed -i -f /tmp/ipadefdsed.$$ /etc/ipa/default.conf \; rm -f /tmp/ipadefdsed.$$
 [[ "${debugecho}" == "true" ]] && sudo_remote_cli cat /etc/ipa/default.conf
+
+remote_cli kdestroy
+sudo_remote_cli kdestroy
+sudo_remote_cli ipa-rmkeytab -k /etc/krb5.keytab -r ${brealm} 
+[[ "${debugecho}" == "true" ]] && sudo_remote_cli klist -k /etc/krb5.keytab
+echo -e "Via SSH to ${cli} as ${USER} about to try: sudo bash -c \"echo YOURPASSWORD | kinit ${USER}\""
+sudo_remote_cli bash -c \"echo ${userpw} \| kinit ${USER}\" 2>/dev/null
+[[ "${debugecho}" == "true" ]] && sudo_remote_cli klist
+sudo_remote_cli ipa-getkeytab -s ${newmaster} -p host/${fqclient} -k /etc/krb5.keytab
+[[ "${debugecho}" == "true" ]] && sudo_remote_cli klist -k /etc/krb5.keytab
 
 case $rinitutil in
 	systemctl )
