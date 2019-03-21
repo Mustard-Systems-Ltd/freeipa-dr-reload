@@ -1,4 +1,5 @@
 #!/bin/bash
+debugecho=false
 
 if [ -f /etc/os-release ]; then
 	# freedesktop.org and systemd
@@ -63,7 +64,7 @@ userpw=$3
 
 remote_cli()
 {
-	echo -e "Via SSH to ${cli} as ${USER} about to try: $@" 1>&2
+	[[ "${debugecho}" == "true" ]] && echo -e "Via SSH to ${cli} as ${USER} about to try: $@" 1>&2
         ssh -o PreferredAuthentications=publickey -o ConnectTimeout=8 ${USER}@${cli} -- $@
 }
 
@@ -72,15 +73,22 @@ if ! remote_cli true 2>/dev/null ; then
 	exit 1
 fi
 
+urhn="$(remote_cli hostname | sed -e 's/^\([^.]*\)\..*$/\1/')"
+ucli="$(echo ${cli} | sed -e 's/^\([^.]*\)\..*$/\1/')"
+if [[ "${ucli}" != "${urhn}" ]] ; then
+	(>&2 echo "Remote hostname \"${urhn}\" is dissimilar to \"${ucli}\" hostname argument supplied. Aborting!")
+	exit 1
+fi
+
 sudo_remote_cli()
 {
-	echo -e "SSH to ${cli} as ${USER} about to try: sudo $@" 1>&2
+	[[ "${debugecho}" == "true" ]] && echo -e "Via SSH to ${cli} as ${USER} about to try: sudo $@" 1>&2
         (2>/dev/null remote_cli echo ${userpw} \| sudo -p "''" -S $@)
 }
 
 remote_nmipa()
 {
-	echo -e "SSH to ${newmaster} as ${USER} about to try: $@" 1>&2
+	[[ "${debugecho}" == "true" ]] && echo -e "Via SSH to ${newmaster} as ${USER} about to try: $@" 1>&2
         ssh -o PreferredAuthentications=publickey -o ConnectTimeout=8 ${USER}@${nmipaip} -- $@
 }
 
@@ -91,7 +99,7 @@ fi
 
 sudo_remote_nmipa()
 {
-	echo -e "Via SSH to ${newmaster} as ${USER} about to try: sudo $@" 1>&2
+	[[ "${debugecho}" == "true" ]] && echo -e "Via SSH to ${newmaster} as ${USER} about to try: sudo $@" 1>&2
         (2>/dev/null remote_nmipa echo ${userpw} \| sudo -p "''" -S $@)
 }
 
@@ -296,12 +304,12 @@ fi
 remote_cli kdestroy
 sudo_remote_cli kdestroy
 sudo_remote_cli ipa-rmkeytab -k /etc/krb5.keytab -r ${brealm} 
-sudo_remote_cli klist -k /etc/krb5.keytab
-echo -e "sudo Via SSH to ${cli} as ${USER} about to try: sudo bash -c \"echo YOURPASSWORD | kinit ${USER}\""
+[[ "${debugecho}" == "true" ]] && sudo_remote_cli klist -k /etc/krb5.keytab
+echo -e "Via SSH to ${cli} as ${USER} about to try: sudo bash -c \"echo YOURPASSWORD | kinit ${USER}\""
 sudo_remote_cli bash -c \"echo ${userpw} \| kinit ${USER}\" 2>/dev/null
-sudo_remote_cli klist
+[[ "${debugecho}" == "true" ]] && sudo_remote_cli klist
 sudo_remote_cli ipa-getkeytab -s ${newmaster} -p host/${fqclient} -k /etc/krb5.keytab
-sudo_remote_cli klist -k /etc/krb5.keytab
+[[ "${debugecho}" == "true" ]] && sudo_remote_cli klist -k /etc/krb5.keytab
 
 touch /tmp/sssdsed.$$ ; chmod go-rwx /tmp/sssdsed.$$
 echo '
@@ -311,9 +319,9 @@ echo '
 remote_cli touch /tmp/sssdsed.$$ \; chmod go-rwx /tmp/sssdsed.$$
 cat /tmp/sssdsed.$$ | remote_cli cat \> /tmp/sssdsed.$$
 rm -f /tmp/sssdsed.$$
-#sudo_remote_cli cat /etc/sssd/sssd.conf
+#[[ "${debugecho}" == "true" ]] && sudo_remote_cli cat /etc/sssd/sssd.conf
 sudo_remote_cli sed -i -f /tmp/sssdsed.$$ /etc/sssd/sssd.conf \; rm -f /tmp/sssdsed.$$
-sudo_remote_cli cat /etc/sssd/sssd.conf
+[[ "${debugecho}" == "true" ]] && sudo_remote_cli cat /etc/sssd/sssd.conf
 
 touch /tmp/krb5sed.$$ ; chmod go-rwx /tmp/krb5sed.$$
 echo '
@@ -326,13 +334,13 @@ s/^\(\s*\)dns_lookup_kdc = .*/\1dns_lookup_kdc = true/
 s/^\(\s*\)pkinit_anchors = \(.*\)$/\1pkinit_anchors = \2\n\1#master_kdc = '"${newmaster}"':88\n\1admin_server = '"${newmaster}"':749/
 }
 ' > /tmp/krb5sed.$$
-#cat /tmp/krb5sed.$$
+#[[ "${debugecho}" == "true" ]] && cat /tmp/krb5sed.$$
 remote_cli touch /tmp/krb5sed.$$ \; chmod go-rwx /tmp/krb5sed.$$
 cat /tmp/krb5sed.$$ | remote_cli cat \> /tmp/krb5sed.$$
 rm -f /tmp/krb5sed.$$
-#sudo_remote_cli cat /etc/krb5.conf
+#[[ "${debugecho}" == "true" ]] && sudo_remote_cli cat /etc/krb5.conf
 sudo_remote_cli sed -i -f /tmp/krb5sed.$$ /etc/krb5.conf \; rm -f /tmp/krb5sed.$$
-sudo_remote_cli cat /etc/krb5.conf
+[[ "${debugecho}" == "true" ]] && sudo_remote_cli cat /etc/krb5.conf
 
 case $rinitutil in
 	systemctl )
@@ -347,7 +355,4 @@ case $rinitutil in
 	;;
 esac
 
-
-
-echo Debug: hit the bottom ; exit 0
-
+[[ "${debugecho}" == "true" ]] && echo Debug: hit the bottom ; exit 0
