@@ -1,5 +1,5 @@
 #!/bin/bash
-debugecho=false
+debugecho=true
 
 if [ -f /etc/os-release ]; then
 	# freedesktop.org and systemd
@@ -315,7 +315,7 @@ touch /tmp/sssdsed.$$ ; chmod go-rwx /tmp/sssdsed.$$
 echo '
 /^ipa_server/s/^.*$/ipa_server = _srv_/
 ' > /tmp/sssdsed.$$
-#cat /tmp/sssdsed.$$
+#[[ "${debugecho}" == "true" ]] && cat /tmp/sssdsed.$$
 remote_cli touch /tmp/sssdsed.$$ \; chmod go-rwx /tmp/sssdsed.$$
 cat /tmp/sssdsed.$$ | remote_cli cat \> /tmp/sssdsed.$$
 rm -f /tmp/sssdsed.$$
@@ -330,8 +330,9 @@ s/^\(\s*\)dns_lookup_kdc = .*/\1dns_lookup_kdc = true/
 /^\s*#*kdc = /d
 /^\s*#*master_kdc = /d
 /^\s*#*admin_server = /d
+/^\s*#*default_domain = /d
 /^\s*$/d
-s/^\(\s*\)pkinit_anchors = \(.*\)$/\1pkinit_anchors = \2\n\1#master_kdc = '"${newmaster}"':88\n\1admin_server = '"${newmaster}"':749/
+s/^\(\s*\)pkinit_anchors = \(.*\)$/\1#kdc = ???.'"${bzn}"'\n\1#master_kdc = '"${newmaster}"':88\n\1admin_server = '"${newmaster}"':749\n\1default_domain = '"${bzn}"'\n\1pkinit_anchors = \2\n/
 }
 ' > /tmp/krb5sed.$$
 #[[ "${debugecho}" == "true" ]] && cat /tmp/krb5sed.$$
@@ -341,6 +342,19 @@ rm -f /tmp/krb5sed.$$
 #[[ "${debugecho}" == "true" ]] && sudo_remote_cli cat /etc/krb5.conf
 sudo_remote_cli sed -i -f /tmp/krb5sed.$$ /etc/krb5.conf \; rm -f /tmp/krb5sed.$$
 [[ "${debugecho}" == "true" ]] && sudo_remote_cli cat /etc/krb5.conf
+
+touch /tmp/ipadefdsed.$$ ; chmod go-rwx /tmp/ipadefdsed.$$
+echo '
+s/^#*server = .*$/#server = ???.'"${bzn}"'/
+s/^xmlrpc_uri = .*$/xmlrpc_uri = https:\/\/'"${newmaster}"'\/ipa\/xml/
+' > /tmp/ipadefdsed.$$
+[[ "${debugecho}" == "true" ]] && cat /tmp/ipadefdsed.$$
+remote_cli touch /tmp/ipadefdsed.$$ \; chmod go-rwx /tmp/ipadefdsed.$$
+cat /tmp/ipadefdsed.$$ | remote_cli cat \> /tmp/ipadefdsed.$$
+rm -f /tmp/ipadefdsed.$$
+[[ "${debugecho}" == "true" ]] && sudo_remote_cli cat /etc/ipa/default.conf
+sudo_remote_cli sed -i -f /tmp/ipadefdsed.$$ /etc/ipa/default.conf \; rm -f /tmp/ipadefdsed.$$
+[[ "${debugecho}" == "true" ]] && sudo_remote_cli cat /etc/ipa/default.conf
 
 case $rinitutil in
 	systemctl )
