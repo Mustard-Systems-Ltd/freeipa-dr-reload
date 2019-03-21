@@ -69,7 +69,6 @@ sleep 2
 timedatectl status
 
 
-
 sed -i -e '/# Allow NTP client access from local network\./,/^\s*$/{
 /^#*allow /d
 /^\s*$/i\
@@ -88,7 +87,6 @@ systemctl start chronyd.service
 sleep 10
 timedatectl status
 sleep 2
-
 
 
 sleep 2
@@ -124,4 +122,4 @@ sleep 2
 sync
 sleep 2
 echo Rebooting
-#exec shutdown -r now
+exec shutdown -r now
