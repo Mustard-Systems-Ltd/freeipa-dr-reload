@@ -66,8 +66,12 @@ remote_cli()
 {
 	[[ "${debugecho}" == "true" ]] && echo -e "Via SSH to ${cli} as ${USER} about to try: $@" 1>&2
         ssh -o PreferredAuthentications=publickey -o ConnectTimeout=8 ${USER}@${cli} -- $@
+	rc=$?
+	[[ $rc != 0 ]] && echo -e "Failure via SSH to ${cli} as ${USER} during: $@" 1>&2
+	return $rc
 }
 
+remote_cli true
 if ! remote_cli true 2>/dev/null ; then
 	(>&2 echo "\"ssh -o PreferredAuthentications=publickey -o ConnectTimeout=8 \${USER}@${cli} true\" failed")
 	exit 1
@@ -84,12 +88,18 @@ sudo_remote_cli()
 {
 	[[ "${debugecho}" == "true" ]] && echo -e "Via SSH to ${cli} as ${USER} about to try: sudo $@" 1>&2
         (2>/dev/null remote_cli echo ${userpw} \| sudo -p "''" -S $@)
+	rc=$?
+	[[ $rc != 0 ]] && echo -e "Failure via SSH to ${cli} as ${USER} during: sudo $@" 1>&2
+	return $rc
 }
 
 remote_nmipa()
 {
 	[[ "${debugecho}" == "true" ]] && echo -e "Via SSH to ${newmaster} as ${USER} about to try: $@" 1>&2
         ssh -o PreferredAuthentications=publickey -o ConnectTimeout=8 ${USER}@${nmipaip} -- $@
+	rc=$?
+	[[ $rc != 0 ]] && echo -e "Failure via SSH to ${newmaster} as ${USER} during: $@" 1>&2
+	return $rc
 }
 
 if ! remote_nmipa true 2>/dev/null ; then
@@ -101,6 +111,9 @@ sudo_remote_nmipa()
 {
 	[[ "${debugecho}" == "true" ]] && echo -e "Via SSH to ${newmaster} as ${USER} about to try: sudo $@" 1>&2
         (2>/dev/null remote_nmipa echo ${userpw} \| sudo -p "''" -S $@)
+	rc=$?
+	[[ $rc != 0 ]] && echo -e "Failure via SSH to ${newmaster} as ${USER} during: sudo $@" 1>&2
+	return $rc
 }
 
 fqclient=$(remote_cli hostname --fqdn)
@@ -149,6 +162,22 @@ else
 	(>&2 echo "Don't recognise the init system on this ${RCOS} ${RCVER} install")
 	exit 1
 fi
+
+flushsssd()
+{
+	case $rinitutil in
+		systemctl )
+			sudo_remote_cli bash -c \"systemctl stop sssd.service \; find /var/lib/sss/db -type f -print0 \| xargs -r0 rm -f \; systemctl start sssd.service\"
+		;;
+		initctl )
+			sudo_remote_cli bash -c \"initctl stop sssd.service \; find /var/lib/sss/db -type f -print0 \| xargs -r0 rm -f \; initctl start sssd.service\"
+		;;
+		* )
+			(>&2 echo "\$rinitutil undefined")
+			exit 1
+		;;
+	esac
+}
 
 if type nmap >/dev/null 2>&1 ; then
 	localkeepnmap=yes
@@ -358,8 +387,8 @@ echo -e "Via SSH to ${cli} as ${USER} about to try: sudo bash -c \"echo YOURPASS
 sudo_remote_cli bash -c \"echo ${userpw} \| kinit ${USER}\" 2>/dev/null
 [[ "${debugecho}" == "true" ]] && sudo_remote_cli klist
 sudo_remote_cli ipa-getkeytab -s ${newmaster} -p host/${fqclient} -k /etc/krb5.keytab
-if [[ $? != 0 ]] ; then
-	xc=$?
+xc=$?
+if [[ ${xc} != 0 ]] ; then
 	echo ipa-getkeytab Result ${xc} is not zero
 	sudo_remote_cli cp -p /etc/krb5.keytab /etc/krb5.keytab.new-bad
 	sudo_remote_cli klist -k /etc/krb5.keytab.new-bad
@@ -369,17 +398,6 @@ if [[ $? != 0 ]] ; then
 fi
 [[ "${debugecho}" == "true" ]] && sudo_remote_cli klist -k /etc/krb5.keytab
 
-case $rinitutil in
-	systemctl )
-		sudo_remote_cli bash -c \"systemctl stop sssd.service \; find /var/lib/sss/db -type f -print0 \| xargs -r0 rm -f \; systemctl start sssd.service\"
-	;;
-	initctl )
-		sudo_remote_cli bash -c \"initctl stop sssd.service \; find /var/lib/sss/db -type f -print0 \| xargs -r0 rm -f \; initctl start sssd.service\"
-	;;
-	* )
-		(>&2 echo "\$rinitutil undefined")
-		exit 1
-	;;
-esac
+flushsssd
 
 [[ "${debugecho}" == "true" ]] && echo Debug: hit the bottom ; exit 0
