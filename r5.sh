@@ -36,11 +36,11 @@ echo Sleeping for 131 then shutting down FreeIPA
 sleep 301
 sync ; ipactl stop ; sync
 sleep 2
-systemctl --lines=0 status {dirsrv@${realmm},httpd,certmonger,ipa-dnskeysyncd,ipa_memcached,kadmin,krb5kdc,named-pkcs11,pki-tomcatd@pki-tomcat}.service
+systemctl --lines=0 status {dirsrv@${realmm},httpd,certmonger,ipa-dnskeysyncd,kadmin,krb5kdc,named-pkcs11,pki-tomcatd@pki-tomcat}.service
 sleep 10
-systemctl stop {dirsrv@${realmm},httpd,certmonger,ipa-dnskeysyncd,ipa_memcached,kadmin,krb5kdc,named-pkcs11,pki-tomcatd@pki-tomcat}.service
+systemctl stop {dirsrv@${realmm},httpd,certmonger,ipa-dnskeysyncd,kadmin,krb5kdc,named-pkcs11,pki-tomcatd@pki-tomcat}.service
 sleep 10
-systemctl --lines=0 status {dirsrv@${realmm},httpd,certmonger,ipa-dnskeysyncd,ipa_memcached,kadmin,krb5kdc,named-pkcs11,pki-tomcatd@pki-tomcat}.service
+systemctl --lines=0 status {dirsrv@${realmm},httpd,certmonger,ipa-dnskeysyncd,kadmin,krb5kdc,named-pkcs11,pki-tomcatd@pki-tomcat}.service
 sleep 10
 yum -y upgrade
 rpm -qa | grep -E 'krb5|samba|sss|gssproxy|hbac|ipa|slapi|ldap|pkcs|ldb|bind|named|389-ds|kernel-|pki-|ntp|chrony' | sort > packages-after-r5-upgrade.txt
@@ -48,11 +48,11 @@ rpm -qa | grep -E 'krb5|samba|sss|gssproxy|hbac|ipa|slapi|ldap|pkcs|ldb|bind|nam
 [[ -r /var/log/ipaupgrade.log ]] && mv /var/log/ipaupgrade.log /var/log/ipaupgrade.$(date +%s).log
 sleep 2
 sync
-systemctl --lines=0 status {dirsrv@${realmm},httpd,certmonger,ipa-dnskeysyncd,ipa_memcached,kadmin,krb5kdc,named-pkcs11,pki-tomcatd@pki-tomcat}.service
+systemctl --lines=0 status {dirsrv@${realmm},httpd,certmonger,ipa-dnskeysyncd,kadmin,krb5kdc,named-pkcs11,pki-tomcatd@pki-tomcat}.service
 sleep 10
-systemctl stop {dirsrv@${realmm},httpd,certmonger,ipa-dnskeysyncd,ipa_memcached,kadmin,krb5kdc,named-pkcs11,pki-tomcatd@pki-tomcat}.service
+systemctl stop {dirsrv@${realmm},httpd,certmonger,ipa-dnskeysyncd,kadmin,krb5kdc,named-pkcs11,pki-tomcatd@pki-tomcat}.service
 sleep 10
-systemctl --lines=0 status {dirsrv@${realmm},httpd,certmonger,ipa-dnskeysyncd,ipa_memcached,kadmin,krb5kdc,named-pkcs11,pki-tomcatd@pki-tomcat}.service
+systemctl --lines=0 status {dirsrv@${realmm},httpd,certmonger,ipa-dnskeysyncd,kadmin,krb5kdc,named-pkcs11,pki-tomcatd@pki-tomcat}.service
 sleep 2
 echo Sleeping for 61
 sleep 61
