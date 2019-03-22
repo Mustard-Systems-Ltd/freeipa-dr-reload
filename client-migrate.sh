@@ -376,6 +376,7 @@ rm -f /tmp/ipadefdsed.$$
 sudo_remote_cli sed -i -f /tmp/ipadefdsed.$$ /etc/ipa/default.conf \; rm -f /tmp/ipadefdsed.$$
 [[ "${debugecho}" == "true" ]] && sudo_remote_cli cat /etc/ipa/default.conf
 
+remote_cli cat /etc/resolv.conf
 remote_cli kdestroy
 sudo_remote_cli kdestroy
 [[ "${debugecho}" == "true" ]] && sudo_remote_cli id
@@ -400,6 +401,8 @@ if [[ ${xc} != 0 ]] ; then
 fi
 [[ "${debugecho}" == "true" ]] && sudo_remote_cli klist -k /etc/krb5.keytab
 
+[[ "${debugecho}" == "true" ]] && remote_cli cat /etc/resolv.conf
 flushsssd
+[[ "${debugecho}" == "true" ]] && remote_cli cat /etc/resolv.conf
 
 [[ "${debugecho}" == "true" ]] && echo Debug: hit the bottom ; exit 0
