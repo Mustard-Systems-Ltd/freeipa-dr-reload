@@ -376,7 +376,6 @@ rm -f /tmp/ipadefdsed.$$
 sudo_remote_cli sed -i -f /tmp/ipadefdsed.$$ /etc/ipa/default.conf \; rm -f /tmp/ipadefdsed.$$
 [[ "${debugecho}" == "true" ]] && sudo_remote_cli cat /etc/ipa/default.conf
 
-remote_cli cat /etc/resolv.conf
 remote_cli kdestroy
 sudo_remote_cli kdestroy
 [[ "${debugecho}" == "true" ]] && sudo_remote_cli id
@@ -388,8 +387,9 @@ xc=$?
 echo -e "Via SSH to ${cli} as ${USER} about to try: sudo bash -c \"echo YOURPASSWORD | kinit ${USER}\""
 sudo_remote_cli bash -c \"echo ${userpw} \| kinit ${USER}\" 2>/dev/null
 [[ "${debugecho}" == "true" ]] && sudo_remote_cli klist
-sleep 3
+sleep 5
 sudo_remote_cli bash -c \"ipa-getkeytab -s ${newmaster} -p host/${fqclient} -k /etc/krb5.keytab\"
+#sudo_remote_cli bash -c \"strace -fc ipa-getkeytab -s ${newmaster} -p host/${fqclient} -k /etc/krb5.keytab 2\>\&1\"
 xc=$?
 if [[ ${xc} != 0 ]] ; then
 	echo ipa-getkeytab Result ${xc} is not zero
