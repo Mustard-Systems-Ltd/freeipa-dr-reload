@@ -170,7 +170,7 @@ flushsssd()
 			sudo_remote_cli bash -c \"systemctl stop sssd.service \; find /var/lib/sss/db -type f -print0 \| xargs -r0 rm -f \; systemctl start sssd.service\"
 		;;
 		initctl )
-			sudo_remote_cli bash -c \"initctl stop sssd.service \; find /var/lib/sss/db -type f -print0 \| xargs -r0 rm -f \; initctl start sssd.service\"
+			sudo_remote_cli bash -c \"initctl stop sssd \; find /var/lib/sss/db -type f -print0 \| xargs -r0 rm -f \; initctl start sssd\"
 		;;
 		* )
 			(>&2 echo "\$rinitutil undefined")
@@ -388,7 +388,7 @@ echo -e "Via SSH to ${cli} as ${USER} about to try: sudo bash -c \"echo YOURPASS
 sudo_remote_cli bash -c \"echo ${userpw} \| kinit ${USER}\" 2>/dev/null
 [[ "${debugecho}" == "true" ]] && sudo_remote_cli klist
 sleep 3
-sudo_remote_cli bash -c \"strace -fc ipa-getkeytab -s ${newmaster} -p host/${fqclient} -k /etc/krb5.keytab\"
+sudo_remote_cli bash -c \"ipa-getkeytab -s ${newmaster} -p host/${fqclient} -k /etc/krb5.keytab\"
 xc=$?
 if [[ ${xc} != 0 ]] ; then
 	echo ipa-getkeytab Result ${xc} is not zero
