@@ -183,6 +183,18 @@ echo Sleeping for 61
 sleep 61
 ipa server-role-find
 sleep 2
+nmcli connection modify eth0 ipv4.dns "127.0.0.1,${rip}"
+remote nmcli connection modify eth0 ipv4.dns \"127.0.0.1,${mip}\"
+systemctl restart network.service
+sleep 3
+remote exec systemctl restart network.service
+echo Sleeping for 61
+sleep 61
+ipa-kra-install -p $PW -U
+echo Sleeping for 61
+sleep 61
+ipa server-role-find
+sleep 2
 remote sudo -u dirsrv -- db2ldif -Z $realmm -NU -n userRoot
 sleep 2
 remote sudo -u dirsrv -- db2ldif -Z $realmm -NU -n ipaca
@@ -199,10 +211,5 @@ sudo -u dirsrv -- db2ldif -Z $realmm -NU -n changelog
 sleep 2
 #disable db2bak#sudo -u dirsrv -- db2bak -Z $realmm
 ls -lrt /var/lib/dirsrv/slapd-${realmm}/ldif/\*
-sleep 2
-nmcli connection modify eth0 ipv4.dns "127.0.0.1,${rip}"
-remote nmcli connection modify eth0 ipv4.dns \"127.0.0.1,${mip}\"
-systemctl restart network.service
-sleep 3
-remote exec systemctl restart network.service
-sleep 3
+
+
