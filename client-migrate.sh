@@ -1,5 +1,5 @@
 #!/bin/bash
-debugecho=true
+debugecho=false
 
 if [ -f /etc/os-release ]; then
 	# freedesktop.org and systemd
@@ -283,6 +283,7 @@ nameserver '"$i"'
 		;;
 esac
 
+[[ "${debugecho}" == "true" ]] && remote_cli cat /etc/resolv.conf
 sudo_remote_cli wget -O /etc/ipa/ca.crt http://${newmaster}/ipa/config/ca.crt
 
 if [[ $keepwget == "no" ]] ; then
@@ -348,12 +349,24 @@ sudo_remote_cli sed -i -f /tmp/ipadefdsed.$$ /etc/ipa/default.conf \; rm -f /tmp
 
 remote_cli kdestroy
 sudo_remote_cli kdestroy
+[[ "${debugecho}" == "true" ]] && sudo_remote_cli id
+[[ "${debugecho}" == "true" ]] && sudo_remote_cli klist -k /etc/krb5.keytab
+sudo_remote_cli cp -p /etc/krb5.keytab /etc/krb5.keytab.old-backup
 sudo_remote_cli ipa-rmkeytab -k /etc/krb5.keytab -r ${brealm} 
 [[ "${debugecho}" == "true" ]] && sudo_remote_cli klist -k /etc/krb5.keytab
 echo -e "Via SSH to ${cli} as ${USER} about to try: sudo bash -c \"echo YOURPASSWORD | kinit ${USER}\""
 sudo_remote_cli bash -c \"echo ${userpw} \| kinit ${USER}\" 2>/dev/null
 [[ "${debugecho}" == "true" ]] && sudo_remote_cli klist
 sudo_remote_cli ipa-getkeytab -s ${newmaster} -p host/${fqclient} -k /etc/krb5.keytab
+if [[ $? != 0 ]] ; then
+	xc=$?
+	echo ipa-getkeytab Result ${xc} is not zero
+	sudo_remote_cli cp -p /etc/krb5.keytab /etc/krb5.keytab.new-bad
+	sudo_remote_cli klist -k /etc/krb5.keytab.new-bad
+	echo "Replacing /etc/krb5.keytab (/etc/krb5.keytab.new-bad) with /etc/krb5.keytab.old-backup"
+	sudo_remote_cli cp -fp /etc/krb5.keytab.old-backup /etc/krb5.keytab
+	exit $xc
+fi
 [[ "${debugecho}" == "true" ]] && sudo_remote_cli klist -k /etc/krb5.keytab
 
 case $rinitutil in
