@@ -155,8 +155,10 @@ fi
 
 if remote_cli type systemctl >/dev/null 2>&1 ; then
 	rinitutil=systemctl
+	echoflushsssd="systemctl stop sssd.service ; find /var/lib/sss/db -type f -print0 | xargs -r0 rm -f ; systemctl start sssd.service"
 elif remote_cli type initctl>/dev/null 2>&1 ; then
 	rinitutil=initctl
+	echoflushsssd="initctl stop sssd ; find /var/lib/sss/db -type f -print0 | xargs -r0 rm -f ; initctl start sssd"
 else
 	rinitutil=unknown
 	(>&2 echo "Don't recognise the init system on this ${RCOS} ${RCVER} install")
@@ -381,28 +383,45 @@ sudo_remote_cli kdestroy
 [[ "${debugecho}" == "true" ]] && sudo_remote_cli id
 [[ "${debugecho}" == "true" ]] && sudo_remote_cli klist -k /etc/krb5.keytab
 sudo_remote_cli cp -p /etc/krb5.keytab /etc/krb5.keytab.old-backup
-sudo_remote_cli ipa-rmkeytab -k /etc/krb5.keytab -r ${brealm} 
-xc=$?
-[[ $xc != 0 || "${debugecho}" == "true" ]] && sudo_remote_cli klist -k /etc/krb5.keytab
-echo -e "Via SSH to ${cli} as ${USER} about to try: sudo bash -c \"echo YOURPASSWORD | kinit ${USER}\""
-sudo_remote_cli bash -c \"echo ${userpw} \| kinit ${USER}\" 2>/dev/null
-[[ "${debugecho}" == "true" ]] && sudo_remote_cli klist
-sleep 5
-sudo_remote_cli bash -c \"ipa-getkeytab -s ${newmaster} -p host/${fqclient} -k /etc/krb5.keytab\"
-#sudo_remote_cli bash -c \"strace -fc ipa-getkeytab -s ${newmaster} -p host/${fqclient} -k /etc/krb5.keytab 2\>\&1\"
-xc=$?
+
+touch /tmp/keyflip.$$ ; chmod go-w /tmp/keyflip.$$
+remote_cli bash -c \"touch /tmp/keyflip.$$ \; chmod go-w /tmp/keyflip.$$\"
+cat /dev/null > /tmp/keyflip.$$
+
+echo ipa-rmkeytab -k /etc/krb5.keytab -r ${brealm}  >> /tmp/keyflip.$$
+[[ $xc != 0 || "${debugecho}" == "true" ]] && echo klist -k /etc/krb5.keytab >> /tmp/keyflip.$$
+
+echo "${echoflushsssd}" >> /tmp/keyflip.$$
+
+echo -e "echo About to try: \"echo YOURPASSWORD | kinit ${USER}\""  >> /tmp/keyflip.$$
+echo echo ${userpw} \| kinit ${USER} '2>/dev/null'  >> /tmp/keyflip.$$
+[[ $xc != 0 || "${debugecho}" == "true" ]] && echo klist >> /tmp/keyflip.$$
+
+echo 'ipa-getkeytab' -s ${newmaster} -p host/${fqclient} -k /etc/krb5.keytab >> /tmp/keyflip.$$
+echo '#strace -fe socket,connect,execve ipa-getkeytab ipa-getkeytab' -s ${newmaster} -p host/${fqclient} -k /etc/krb5.keytab >> /tmp/keyflip.$$
+echo 'xc=$?
+sleep 2
 if [[ ${xc} != 0 ]] ; then
 	echo ipa-getkeytab Result ${xc} is not zero
-	sudo_remote_cli cp -p /etc/krb5.keytab /etc/krb5.keytab.new-bad
-	sudo_remote_cli klist -k /etc/krb5.keytab.new-bad
+	cp -p /etc/krb5.keytab /etc/krb5.keytab.new-bad
+	klist -k /etc/krb5.keytab.new-bad
 	echo "Replacing /etc/krb5.keytab (/etc/krb5.keytab.new-bad) with /etc/krb5.keytab.old-backup"
-	sudo_remote_cli cp -fp /etc/krb5.keytab.old-backup /etc/krb5.keytab
-	exit $xc
+	cp -fp /etc/krb5.keytab.old-backup /etc/krb5.keytab
+' >> /tmp/keyflip.$$
+echo "	${echoflushsssd}" >> /tmp/keyflip.$$
+echo '	exit $xc
+else' >> /tmp/keyflip.$$
+echo "	${echoflushsssd}" >> /tmp/keyflip.$$
+echo '	rm -f /etc/krb5.keytab.old-backup 
 fi
-[[ "${debugecho}" == "true" ]] && sudo_remote_cli klist -k /etc/krb5.keytab
+' >> /tmp/keyflip.$$
 
-[[ "${debugecho}" == "true" ]] && remote_cli cat /etc/resolv.conf
-flushsssd
-[[ "${debugecho}" == "true" ]] && remote_cli cat /etc/resolv.conf
+[[ "${debugecho}" == "true" ]] && echo klist -k /etc/krb5.keytab >> /tmp/keyflip.$$
+[[ "${debugecho}" == "true" ]] && echo cat /etc/resolv.conf >> /tmp/keyflip.$$
+
+cat /tmp/keyflip.$$ | remote_cli cat \> /tmp/keyflip.$$
+sudo_remote_cli bash /tmp/keyflip.$$
+rm -f /tmp/keyflip.$$
+remote_cli rm -f /tmp/keyflip.$$
 
 [[ "${debugecho}" == "true" ]] && echo Debug: hit the bottom ; exit 0
