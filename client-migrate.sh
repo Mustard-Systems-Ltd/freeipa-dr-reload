@@ -67,7 +67,7 @@ remote_cli()
 	[[ "${debugecho}" == "true" ]] && echo -e "Via SSH to ${cli} as ${USER} about to try: $@" 1>&2
         ssh -o PreferredAuthentications=publickey -o ConnectTimeout=8 ${USER}@${cli} -- $@
 	rc=$?
-	[[ $rc != 0 ]] && echo -e "Failure via SSH to ${cli} as ${USER} during: $@" 1>&2
+	[[ $rc != 0 ]] && echo -e "Failure (code $rc) via SSH to ${cli} as ${USER} during: $@" 1>&2
 	return $rc
 }
 
@@ -89,7 +89,7 @@ sudo_remote_cli()
 	[[ "${debugecho}" == "true" ]] && echo -e "Via SSH to ${cli} as ${USER} about to try: sudo $@" 1>&2
         (2>/dev/null remote_cli echo ${userpw} \| sudo -p "''" -S $@)
 	rc=$?
-	[[ $rc != 0 ]] && echo -e "Failure via SSH to ${cli} as ${USER} during: sudo $@" 1>&2
+	[[ $rc != 0 ]] && echo -e "Failure (code $rc) via SSH to ${cli} as ${USER} during: sudo $@" 1>&2
 	return $rc
 }
 
@@ -98,7 +98,7 @@ remote_nmipa()
 	[[ "${debugecho}" == "true" ]] && echo -e "Via SSH to ${newmaster} as ${USER} about to try: $@" 1>&2
         ssh -o PreferredAuthentications=publickey -o ConnectTimeout=8 ${USER}@${nmipaip} -- $@
 	rc=$?
-	[[ $rc != 0 ]] && echo -e "Failure via SSH to ${newmaster} as ${USER} during: $@" 1>&2
+	[[ $rc != 0 ]] && echo -e "Failure (code $rc) via SSH to ${newmaster} as ${USER} during: $@" 1>&2
 	return $rc
 }
 
@@ -112,7 +112,7 @@ sudo_remote_nmipa()
 	[[ "${debugecho}" == "true" ]] && echo -e "Via SSH to ${newmaster} as ${USER} about to try: sudo $@" 1>&2
         (2>/dev/null remote_nmipa echo ${userpw} \| sudo -p "''" -S $@)
 	rc=$?
-	[[ $rc != 0 ]] && echo -e "Failure via SSH to ${newmaster} as ${USER} during: sudo $@" 1>&2
+	[[ $rc != 0 ]] && echo -e "Failure (code $rc) via SSH to ${newmaster} as ${USER} during: sudo $@" 1>&2
 	return $rc
 }
 
@@ -382,11 +382,13 @@ sudo_remote_cli kdestroy
 [[ "${debugecho}" == "true" ]] && sudo_remote_cli klist -k /etc/krb5.keytab
 sudo_remote_cli cp -p /etc/krb5.keytab /etc/krb5.keytab.old-backup
 sudo_remote_cli ipa-rmkeytab -k /etc/krb5.keytab -r ${brealm} 
-[[ "${debugecho}" == "true" ]] && sudo_remote_cli klist -k /etc/krb5.keytab
+xc=$?
+[[ $xc != 0 || "${debugecho}" == "true" ]] && sudo_remote_cli klist -k /etc/krb5.keytab
 echo -e "Via SSH to ${cli} as ${USER} about to try: sudo bash -c \"echo YOURPASSWORD | kinit ${USER}\""
 sudo_remote_cli bash -c \"echo ${userpw} \| kinit ${USER}\" 2>/dev/null
 [[ "${debugecho}" == "true" ]] && sudo_remote_cli klist
-sudo_remote_cli ipa-getkeytab -s ${newmaster} -p host/${fqclient} -k /etc/krb5.keytab
+sleep 3
+sudo_remote_cli bash -c \"strace -fc ipa-getkeytab -s ${newmaster} -p host/${fqclient} -k /etc/krb5.keytab\"
 xc=$?
 if [[ ${xc} != 0 ]] ; then
 	echo ipa-getkeytab Result ${xc} is not zero
