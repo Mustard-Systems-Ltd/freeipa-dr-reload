@@ -125,18 +125,16 @@ bdcn=$(echo $bzn | sed -e 's/^/dc=/' -e 's/\./,dc=/g')
 
 if remote_cli test -f /etc/os-release ; then
         # freedesktop.org and systemd
-        . /etc/os-release
-        RCOS=$NAME
-        RCVER=$VERSION_ID
+        RCOS="$(remote_cli bash -c \". /etc/os-release \; echo \\\$NAME\")"
+        RCVER="$(remote_cli bash -c \". /etc/os-release \; echo \\\$VERSION_ID\")"
 elif remote_cli type lsb_release >/dev/null 2>&1; then
         # linuxbase.org
         RCOS=$(lsb_release -si)
         RCVER=$(lsb_release -sr)
 elif remote_cli test -f /etc/lsb-release; then
         # For some versions of Debian/Ubuntu without lsb_release command
-        . /etc/lsb-release
-        RCOS=$DISTRIB_ID
-        RCVER=$DISTRIB_RELEASE
+        RCOS="$(remote_cli bash -c \". /etc/lsb-release \; echo \\\$DISTRIB_ID\")"
+        RCVER="$(remote_cli bash -c \". /etc/lsb-release \; echo \\\$DISTRIB_RELEASE\")"
 elif remote_cli test -f /etc/debian_version; then
         # Older Debian/Ubuntu/etc.
         RCOS=Debian
@@ -423,5 +421,27 @@ cat /tmp/keyflip.$$ | remote_cli cat \> /tmp/keyflip.$$
 sudo_remote_cli bash /tmp/keyflip.$$
 rm -f /tmp/keyflip.$$
 remote_cli rm -f /tmp/keyflip.$$
+
+case ${RCOS}:${RCVER} in
+	Ubuntu:18* )
+		sudo_remote_cli systemctl restart postfix.service
+		;;
+	Ubuntu:16* )
+		sudo_remote_cli systemctl restart postfix.service
+		;;
+	Ubuntu:14* )
+		sudo_remote_cli service postfix restart
+		;;
+	Ubuntu:12* )
+		sudo_remote_cli service postfix restart
+		;;
+	Centos:* )
+		sudo_remote_cli systemctl restart postfix.service
+		;;
+	* )
+		(>&2 echo "No support for ${OS} ${VER}")
+		exit 1
+		;;
+esac
 
 [[ "${debugecho}" == "true" ]] && echo Debug: hit the bottom ; exit 0
