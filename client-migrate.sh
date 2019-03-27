@@ -100,7 +100,6 @@ fi
 
 urhn="$(remote_cli hostname | sed -e 's/^\([^.]*\)\..*$/\1/')"
 ucli="$(echo ${cli} | sed -e 's/^\([^.]*\)\..*$/\1/')"
-exit 0
 
 remote_nmipa()
 {
