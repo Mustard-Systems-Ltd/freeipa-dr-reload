@@ -233,13 +233,13 @@ else
 	sudo_remote_nmipa yum -y --setopt=multilib_policy=best --exclude='*.i686' install nmap
 fi
 
-newkrb="$(sudo_remote_nmipa nmap -n -Pn -sU -p U:88 -oG - $(remote_nmipa dig @127.0.0.1 +short -t srv _kerberos._udp.${bzn}. | awk '{ print $NF}') | awk '/Ports: 88\/open/ { print $2 } { next }')"
+newkrb="$(sudo_remote_nmipa nmap -n -Pn -sU -p U:88 -oG - $(remote_nmipa dig +short -t srv _kerberos._udp.${bzn}. | awk '{ print $NF}') | awk '/Ports: 88\/open/ { print $2 } { next }')"
 upgrep=""
 for i in $newkrb ; do
 	upgrep="${upgrep}|$(remote_nmipa dig @127.0.0.1 +short -x ${i} | sed -e 's/\..*$//')"
 done
 upgrep="$(echo ${upgrep} | sed -e 's/^|//')"
-( remote_nmipa dig @127.0.0.1 +short -t srv _kerberos._udp.${bzn}. | awk '$1 == 0 && $4 ~ /'"${upgrep}"'/ { print $4 }'  ; remote_nmipa dig @127.0.0.1 +short -t srv _kerberos._udp.${bzn}. | awk '$1 > 0 && $4 ~ /'"${upgrep}"'/ { print $4 }' ) > /tmp/orderedcand.$$
+( remote_nmipa dig +short -t srv _kerberos._udp.${bzn}. | awk '$1 == 0 && $4 ~ /'"${upgrep}"'/ { print $4 }'  ; remote_nmipa dig +short -t srv _kerberos._udp.${bzn}. | awk '$1 > 0 && $4 ~ /'"${upgrep}"'/ { print $4 }' ) > /tmp/orderedcand.$$
 newdns2=""
 for i in $(head -n 2 /tmp/orderedcand.$$) ; do
 	newdns2="${newdns2} $(remote_nmipa dig @127.0.0.1 +short $i)"
