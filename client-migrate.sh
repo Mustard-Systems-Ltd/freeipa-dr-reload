@@ -71,7 +71,6 @@ remote_cli()
 	return $rc
 }
 
-remote_cli true
 if ! remote_cli true 2>/dev/null ; then
 	(>&2 echo "\"ssh -o PreferredAuthentications=publickey -o ConnectTimeout=8 \${USER}@${cli} true\" failed")
 	exit 1
@@ -92,6 +91,16 @@ sudo_remote_cli()
 	[[ $rc != 0 ]] && echo -e "Failure (code $rc) via SSH to ${cli} as ${USER} during: sudo $@" 1>&2
 	return $rc
 }
+
+if ! sudo_remote_cli true 2>/dev/null ; then
+	(>&2 echo "\"ssh -o PreferredAuthentications=publickey -o ConnectTimeout=8 \${USER}@${cli} sudo true\" failed")
+	(>&2 echo "Is your password argument correct?")
+	exit 1
+fi
+
+urhn="$(remote_cli hostname | sed -e 's/^\([^.]*\)\..*$/\1/')"
+ucli="$(echo ${cli} | sed -e 's/^\([^.]*\)\..*$/\1/')"
+exit 0
 
 remote_nmipa()
 {
