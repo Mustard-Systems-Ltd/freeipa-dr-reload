@@ -432,18 +432,28 @@ remote_cli rm -f /tmp/keyflip.$$
 
 case ${RCOS}:${RCVER} in
 	Ubuntu:18* )
+		sudo_remote_cli systemctl restart certmonger.service
+		sleep 10
 		sudo_remote_cli systemctl restart postfix.service
 		;;
 	Ubuntu:16* )
+		sudo_remote_cli systemctl restart certmonger.service
+		sleep 10
 		sudo_remote_cli systemctl restart postfix.service
 		;;
 	Ubuntu:14* )
+		sudo_remote_cli initctl restart certmonger
+		sleep 10
 		sudo_remote_cli service postfix restart
 		;;
 	Ubuntu:12* )
+		sudo_remote_cli initctl restart certmonger
+		sleep 10
 		sudo_remote_cli service postfix restart
 		;;
 	Centos:* )
+		sudo_remote_cli systemctl restart certmonger.service
+		sleep 10
 		sudo_remote_cli systemctl restart postfix.service
 		;;
 	* )
