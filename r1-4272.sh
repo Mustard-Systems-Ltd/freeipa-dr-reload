@@ -96,7 +96,7 @@ yum -y --setopt=multilib_policy=best --setopt=obsoletes=0 --exclude='*.i686' ins
 sleep 2
 yum versionlock add ipa-server libldb libsss_nss_idmap
 sleep 2
-yum -y --setopt=multilib_policy=best --setopt=obsoletes=0 --exclude='*.i686' install setroubleshoot-server setools bzip2 lsof strace
+yum -y --setopt=multilib_policy=best --setopt=obsoletes=0 --exclude='*.i686' install setroubleshoot-server setools bzip2 lsof strace tcpdump
 sleep 2
 sudo service auditd restart
 sleep 2

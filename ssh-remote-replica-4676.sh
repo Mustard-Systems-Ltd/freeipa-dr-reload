@@ -139,7 +139,7 @@ remote yum versionlock add ipa-server ipa-server-dns
 sleep 2
 remote yum -y --setopt=multilib_policy=best --setopt=obsoletes=0 --exclude="'"'*.i686'"'" install wget
 sleep 2
-remote yum -y --setopt=multilib_policy=best --setopt=obsoletes=0 --exclude="'"'*.i686'"'" install setroubleshoot-server setools bzip2 lsof strace
+remote yum -y --setopt=multilib_policy=best --setopt=obsoletes=0 --exclude="'"'*.i686'"'" install setroubleshoot-server setools bzip2 lsof strace tcpdump
 sleep 2
 remote sudo service auditd restart
 sleep 2
