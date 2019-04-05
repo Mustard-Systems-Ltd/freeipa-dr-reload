@@ -250,7 +250,7 @@ newdns2=""
 for i in $(head -n 2 /tmp/orderedcand.$$) ; do
 	newdns2="${newdns2} $(remote_nmipa dig @127.0.0.1 +short $i)"
 done
-rm -f /tmp/orderedndnscand.$$
+rm -f /tmp/orderedcand.$$
 
 if [[ $nmikeepnmap == "no" ]] ; then
 	sudo_remote_nmipa yum -y autoremove nmap
