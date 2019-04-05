@@ -250,6 +250,11 @@ newdns2=""
 for i in $(head -n 2 /tmp/orderedcand.$$) ; do
 	newdns2="${newdns2} $(remote_nmipa dig @127.0.0.1 +short $i)"
 done
+
+#hack T5247#sudo_remote_cli sed -i -e "'"'/^server freeipa\./d'"'"  /etc/ntp.conf
+#hack T5247#sudo_remote_cli sed -i -e "'"'s/^server freeipa-125\.'"$(echo ${bzn} | sed -e 's/\./\\./g')"'/server '"$(head -n 1 /tmp/orderedcand.$$ | sed -e 's/\.$//')"'/'"'"  /etc/ntp.conf
+#hack T5247#sudo_remote_cli sed -i -e "'"'s/^server freeipa-126\.'"$(echo ${bzn} | sed -e 's/\./\\./g')"'/server '"$(head -n 2 /tmp/orderedcand.$$ | sed -e 's/\.$//' | tail -n 1)"'/'"'"  /etc/ntp.conf
+
 rm -f /tmp/orderedcand.$$
 
 if [[ $nmikeepnmap == "no" ]] ; then
@@ -431,35 +436,41 @@ rm -f /tmp/keyflip.$$
 remote_cli rm -f /tmp/keyflip.$$
 
 case ${RCOS}:${RCVER} in
-	Ubuntu:18* )
-		sudo_remote_cli systemctl restart certmonger.service
-		sleep 10
-		sudo_remote_cli systemctl restart postfix.service
-		;;
-	Ubuntu:16* )
-		sudo_remote_cli systemctl restart certmonger.service
-		sleep 10
-		sudo_remote_cli systemctl restart postfix.service
-		;;
-	Ubuntu:14* )
-		sudo_remote_cli initctl restart certmonger
-		sleep 10
-		sudo_remote_cli service postfix restart
-		;;
-	Ubuntu:12* )
-		sudo_remote_cli initctl restart certmonger
-		sleep 10
-		sudo_remote_cli service postfix restart
-		;;
-	Centos:* )
-		sudo_remote_cli systemctl restart certmonger.service
-		sleep 10
-		sudo_remote_cli systemctl restart postfix.service
-		;;
-	* )
-		(>&2 echo "No support for ${OS} ${VER}")
-		exit 1
-		;;
+        Ubuntu:18* )
+                sudo_remote_cli systemctl restart certmonger.service
+                sleep 10
+                sudo_remote_cli systemctl restart postfix.service
+                #sudo_remote_cli systemctl restart ntpd.service
+                #sudo_remote_cli systemctl restart chronyd.service
+                ;;
+        Ubuntu:16* )
+                sudo_remote_cli systemctl restart certmonger.service
+                sleep 10
+                sudo_remote_cli systemctl restart postfix.service
+                sudo_remote_cli systemctl restart ntp.service
+                ;;
+        Ubuntu:14* )
+                sudo_remote_cli initctl restart certmonger
+                sleep 10
+                sudo_remote_cli service postfix restart
+                sudo_remote_cli service ntp restart
+                ;;
+        Ubuntu:12* )
+                sudo_remote_cli initctl restart certmonger
+                sleep 10
+                sudo_remote_cli service postfix restart
+                ;;
+        Centos:* )
+                sudo_remote_cli systemctl restart certmonger.service
+                sleep 10
+                sudo_remote_cli systemctl restart postfix.service
+                sudo_remote_cli systemctl restart ntpd.service
+                sudo_remote_cli systemctl restart chronyd.service
+                ;;
+        * )
+                (>&2 echo "No support for ${OS} ${VER}")
+                exit 1
+                ;;
 esac
 
 [[ "${debugecho}" == "true" ]] && echo Debug: hit the bottom ; exit 0
