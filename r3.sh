@@ -116,6 +116,7 @@ else
 		#echo About to try ipa dnsrecord-del cnames.${bzn}. $lis --del-all
 		#ipa dnsrecord-del cnames.${bzn}. $lis --del-all
 	done ; unset lis
+	ipa config-mod --defaultshell=/bin/bash
 	echo Sleeping for 130
 	sleep 130
 	sudo -u dirsrv -- db2ldif -Z $realmm -NU -n userRoot
