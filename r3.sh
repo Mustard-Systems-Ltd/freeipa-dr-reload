@@ -57,9 +57,19 @@ else
 		echo Results of ipa dnszone-show $z --all --raw
 		ipa dnszone-show $z --all --raw
 		if $(echo $z | grep -q 'in-addr\.arpa\.$') ; then 
+			# Reverse domain
 			echo About to try ipa dnszone-mod $z --dynamic-update=TRUE
 			ipa dnszone-mod $z --dynamic-update=TRUE
+			echo About to try ipa dnszone-mod $z --allow-sync-ptr=FALSE
+			ipa dnszone-mod $z --allow-sync-ptr=FALSE
+			echo About to try ipa dnszone-mod $z --update-policy='grant '"${brealm}"' krb5-subdomain '"${z}"' PTR;'
+			ipa dnszone-mod $z --update-policy='grant '"${brealm}"' krb5-subdomain '"${z}"' PTR;'
 		else
+			# Forward domain
+			echo About to try ipa dnszone-mod $z --dynamic-update=TRUE
+			ipa dnszone-mod $z --dynamic-update=TRUE
+			echo About to try ipa dnszone-mod $z --allow-sync-ptr=TRUE
+			ipa dnszone-mod $z --allow-sync-ptr=TRUE
 			echo About to try ipa dnszone-mod $z --update-policy='grant '"${brealm}"' krb5-self * A; grant '"${brealm}"' krb5-self * AAAA; grant '"${brealm}"' krb5-self * SSHFP;'
 			ipa dnszone-mod $z --update-policy='grant '"${brealm}"' krb5-self * A; grant '"${brealm}"' krb5-self * AAAA; grant '"${brealm}"' krb5-self * SSHFP;'
 		fi
